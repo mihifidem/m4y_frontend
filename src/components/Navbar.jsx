@@ -61,46 +61,34 @@ export default function Navbar() {
 
         {/* Enlaces principales */}
         <div className="flex items-center gap-1 sm:gap-2">
-          <Link 
-            to="/home-info" 
-            className={`px-2 sm:px-3 md:px-5 py-1.5 sm:py-2 md:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg ${
-              isActive("/home-info")
-                ? "bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md"
-                : "text-gray-700 hover:bg-white hover:text-rose-600"
-            }`}
+          <Link
+            to="/home-info"
+            className={`group flex items-center gap-2 px-4 py-2 rounded-xl text-base font-semibold shadow-lg transition-all duration-300 bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 text-white hover:from-pink-600 hover:to-purple-600 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-pink-400 ${isActive("/home-info") ? "ring-2 ring-pink-400" : ""}`}
           >
+            <span className="transition-transform duration-300 group-hover:scale-125">🏠</span>
             Inicio
           </Link>
-          <Link 
-            to="/" 
-            className={`px-2 sm:px-3 md:px-5 py-1.5 sm:py-2 md:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg ${
-              isActive("/create-message")
-                ? "bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md"
-                : "text-gray-700 hover:bg-white hover:text-rose-600"
-            }`}
+          <Link
+            to="/"
+            className={`group flex items-center gap-2 px-4 py-2 rounded-xl text-base font-semibold shadow-lg transition-all duration-300 bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 text-white hover:from-pink-600 hover:to-purple-600 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-pink-400 ${isActive("/create-message") ? "ring-2 ring-pink-400" : ""}`}
           >
+            <span className="transition-transform duration-300 group-hover:scale-125">✉️</span>
             Crear Mensaje
           </Link>
-          <Link 
-            to="/view-message" 
-            className={`px-2 sm:px-3 md:px-5 py-1.5 sm:py-2 md:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg ${
-              isActive("/view-message") || isActive("/view/")
-                ? "bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md"
-                : "text-gray-700 hover:bg-white hover:text-rose-600"
-            }`}
+          <Link
+            to="/view-message"
+            className={`group flex items-center gap-2 px-4 py-2 rounded-xl text-base font-semibold shadow-lg transition-all duration-300 bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 text-white hover:from-pink-600 hover:to-purple-600 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-pink-400 ${(isActive("/view-message") || isActive("/view/")) ? "ring-2 ring-pink-400" : ""}`}
           >
+            <span className="transition-transform duration-300 group-hover:scale-125">👁️</span>
             Ver Mensaje
           </Link>
           {/* Enlace solo para admin */}
           {user && user.is_staff && (
             <Link
               to="/admin-codes"
-              className={`px-2 sm:px-3 md:px-5 py-1.5 sm:py-2 md:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg ${
-                isActive("/admin-codes")
-                  ? "bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-md"
-                  : "text-gray-700 hover:bg-white hover:text-yellow-600"
-              }`}
+              className={`group flex items-center gap-2 px-4 py-2 rounded-xl text-base font-semibold shadow-lg transition-all duration-300 bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 text-white hover:from-pink-600 hover:to-purple-600 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-pink-400 ${isActive("/admin-codes") ? "ring-2 ring-pink-400" : ""}`}
             >
+              <span className="transition-transform duration-300 group-hover:scale-125">🛠️</span>
               Admin Códigos
             </Link>
           )}

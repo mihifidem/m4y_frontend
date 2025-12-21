@@ -1,3 +1,15 @@
+// Normaliza la URL para evitar dobles o faltantes de slash
+function normalizeUrl(base, path) {
+  if (!base) return path;
+  if (!path) return base;
+  if (base.endsWith("/") && path.startsWith("/")) {
+    return base + path.slice(1);
+  }
+  if (!base.endsWith("/") && !path.startsWith("/")) {
+    return base + "/" + path;
+  }
+  return base + path;
+}
 
 import { useEffect, useState, useRef } from "react";
 import ConfirmModal from "../components/ConfirmModal";
@@ -182,15 +194,16 @@ export default function ViewMessage() {
               </div>
             )}
 
+
             {/* VIDEO */}
             {message.video && (
               <video
-                src={`${import.meta.env.VITE_API_URL}${message.video}`}
-
+                src={normalizeUrl(import.meta.env.VITE_API_URL, message.video)}
                 controls
                 className="w-full rounded-lg sm:rounded-xl shadow-lg mb-4 sm:mb-6"
               />
             )}
+
 
             {/* AUDIO */}
             {message.audio && (
@@ -200,12 +213,15 @@ export default function ViewMessage() {
                   Audio mensaje
                 </h3>
                 <audio
-                  src={`${import.meta.env.VITE_API_URL}${message.audio}`}
+                  src={normalizeUrl(import.meta.env.VITE_API_URL, message.audio)}
                   controls
                   className="w-full rounded-lg sm:rounded-xl"
                 ></audio>
               </div>
             )}
+
+
+
 
             {/* INFO */}
             <div className="bg-gray-100 p-3 sm:p-4 rounded-lg sm:rounded-xl mb-4 sm:mb-6 text-xs sm:text-sm">
