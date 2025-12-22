@@ -87,6 +87,8 @@ function App() {
             {/* Ver mensaje (destinatario) */}
             <Route path="/view-message" element={<ViewMessageForm />} />
             <Route path="/view/:code" element={<ViewMessage />} />
+            {/* Responder mensaje (destinatario) */}
+            <Route path="/reply/:code" element={<ReplyMessage />} />
             {/* 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>

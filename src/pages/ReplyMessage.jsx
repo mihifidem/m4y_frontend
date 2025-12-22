@@ -112,7 +112,7 @@ export default function ReplyMessage() {
       };
 
       recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: "audio/mp3" });
+        const blob = new Blob(chunks, { type: "audio/webm" });
         setAudioPreview(URL.createObjectURL(blob));
         stream.getTracks().forEach((t) => t.stop());
       };
@@ -147,15 +147,17 @@ export default function ReplyMessage() {
     }
 
     if (audioChunks.length > 0) {
-      const audioBlob = new Blob(audioChunks, { type: "audio/mp3" });
-      formData.append("audio", audioBlob, "reply_audio.mp3");
+      const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+      formData.append("audio", audioBlob, "reply_audio.webm");
     }
 
+    const url = `/message/${code}/reply/`;
+    console.log("Enviando reply a:", url, "con code:", code);
     try {
-      await api.post(`/message/${code}/reply/`, formData);
+      await api.post(url, formData);
       navigate(`/reply-sent/${code}`);
     } catch (err) {
-      console.error(err);
+      console.error("Error al enviar reply:", err);
       alert("Error enviando la respuesta.");
     }
 

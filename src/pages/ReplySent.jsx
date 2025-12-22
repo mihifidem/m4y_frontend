@@ -51,10 +51,6 @@ export default function ReplySent() {
           {play ? "🔇 Detener música" : "🎶 Reproducir música"}
         </button>
 
-        <audio
-          ref={audioRef}
-          src="https://cdn.pixabay.com/download/audio/2021/09/14/audio_24a65e497986.mp3?filename=romantic-music-110695.mp3"
-        />
       </div>
 
       {/* Animación */}

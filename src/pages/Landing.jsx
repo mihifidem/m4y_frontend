@@ -200,7 +200,7 @@ export default function Landing() {
         // Verificar si ya existe un mensaje para este código
         try {
           const msgRes = await api.get(`/message/${finalCode}/peek/`);
-          
+
           if (msgRes.data && msgRes.data.exists !== false && msgRes.data.created_at) {
             // Calcular días desde creación
             const createdDate = new Date(msgRes.data.created_at);
@@ -210,7 +210,7 @@ export default function Landing() {
             const timeLeft = expiryDate - now;
             const daysLeft = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
             const hoursLeft = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            
+
             let timeMessage = '';
             if (daysDiff > 7) {
               timeMessage = '⚠️ El período de modificación ha expirado (más de 7 días).';
@@ -221,15 +221,15 @@ export default function Landing() {
             } else {
               timeMessage = '⚠️ Menos de 1 hora restante para editar';
             }
-            
-            const createdDateStr = createdDate.toLocaleDateString('es-ES', { 
-              day: 'numeric', 
-              month: 'long', 
+
+            const createdDateStr = createdDate.toLocaleDateString('es-ES', {
+              day: 'numeric',
+              month: 'long',
               year: 'numeric',
               hour: '2-digit',
               minute: '2-digit'
             });
-            
+
             setErrorCreate(
               `ℹ️ Este código ya tiene un mensaje creado.\n\n` +
               `📅 Fecha de creación: ${createdDateStr}\n` +
@@ -241,7 +241,7 @@ export default function Landing() {
           // Si no hay mensaje, continuar normalmente
           console.log("No hay mensaje previo");
         }
-        
+
         navigate(`/create-message/${finalCode}`);
       } else {
         setErrorCreate("Este código NO existe o NO está activo.");
@@ -278,7 +278,7 @@ export default function Landing() {
   // Imagen de fondo: prioridad a la del proveedor, si no hay, usar imagen por defecto
   const defaultBgImage = '/2842.jpg';
   const finalBgImage = theme.backgroundImage || defaultBgImage;
-  
+
   const backgroundStyle = {
     backgroundImage: `url(${finalBgImage})`,
     backgroundSize: 'cover',
@@ -291,10 +291,10 @@ export default function Landing() {
   return (
     <div className={`relative min-h-screen flex flex-col justify-center items-center overflow-hidden ${bgClass}`} style={backgroundStyle}>
       {/* Overlay sobre la imagen de fondo */}
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"></div>
+      <div className="absolute inset-0 bg-gray-200/80"></div>
 
-{/* LOGO SUPERIOR IZQUIERDA */}
-{/* <div className="absolute top-6 left-6 flex items-center gap-3 z-20 animate-fade-in">
+      {/* LOGO SUPERIOR IZQUIERDA */}
+      {/* <div className="absolute top-6 left-6 flex items-center gap-3 z-20 animate-fade-in">
   <img
     src="/ntsf_logo.png"
     alt="NTSF Logo"
@@ -303,13 +303,13 @@ export default function Landing() {
 </div> */}
 
       {/* Contenedor principal con grid */}
-      <div className="container mx-auto px-3 sm:px-4 md:px-6 pt-6 sm:pt-8 md:pt-12 relative z-10 w-full max-w-7xl">
+      <div className="container mx-auto px-2 pt-4 relative z-10 w-full max-w-2xl">
         <div className={`grid ${proveedorInfo && proveedorInfo.comercial_name ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'} gap-4 sm:gap-6 md:gap-8 items-start ${!proveedorInfo || !proveedorInfo.comercial_name ? 'justify-items-center' : ''}`}>
-          
+
           {/* Información izquierda - visible cuando hay proveedor */}
           {proveedorInfo && proveedorInfo.comercial_name && (
-            <div className="animate-fade-in w-full">
-              <div className={`${theme.card} backdrop-blur-md bg-white/90 rounded-xl sm:rounded-2xl p-6 sm:p-8 md:p-10 shadow-xl border border-gray-200 flex flex-col justify-between min-h-[400px]`}>
+            <div className="w-full">
+              <div className="bg-white rounded-xl p-6 border border-gray-300 flex flex-col justify-between min-h-[300px]">
                 <div>
                   <h3 className={`text-2xl sm:text-3xl md:text-4xl font-bold ${theme.primaryText} mb-4 sm:mb-6`}>
                     {proveedorInfo.comercial_name || proveedorInfo.name}
@@ -352,35 +352,35 @@ export default function Landing() {
                     {proveedorInfo.facebook && (
                       <a href={proveedorInfo.facebook} target="_blank" rel="noopener noreferrer" className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-gray-400 hover:border-blue-600 flex items-center justify-center transition-all duration-300 hover:scale-110 group">
                         <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 group-hover:text-blue-600 transition-colors" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                         </svg>
                       </a>
                     )}
                     {proveedorInfo.instagram && (
                       <a href={proveedorInfo.instagram} target="_blank" rel="noopener noreferrer" className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-gray-400 hover:border-pink-600 flex items-center justify-center transition-all duration-300 hover:scale-110 group">
                         <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 group-hover:text-pink-600 transition-colors" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                          <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
                         </svg>
                       </a>
                     )}
                     {proveedorInfo.twitter && (
                       <a href={proveedorInfo.twitter} target="_blank" rel="noopener noreferrer" className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-gray-400 hover:border-gray-800 flex items-center justify-center transition-all duration-300 hover:scale-110 group">
                         <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 group-hover:text-gray-800 transition-colors" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                         </svg>
                       </a>
                     )}
                     {proveedorInfo.linkedin && (
                       <a href={proveedorInfo.linkedin} target="_blank" rel="noopener noreferrer" className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-gray-400 hover:border-blue-700 flex items-center justify-center transition-all duration-300 hover:scale-110 group">
                         <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 group-hover:text-blue-700 transition-colors" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                          <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
                         </svg>
                       </a>
                     )}
                     {proveedorInfo.tiktok && (
                       <a href={proveedorInfo.tiktok} target="_blank" rel="noopener noreferrer" className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-gray-400 hover:border-gray-800 flex items-center justify-center transition-all duration-300 hover:scale-110 group">
                         <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 group-hover:text-gray-800 transition-colors" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
+                          <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z" />
                         </svg>
                       </a>
                     )}
@@ -391,90 +391,88 @@ export default function Landing() {
           )}
 
           {/* Tarjeta derecha PARA CREAR MENSAJE */}
-          <div className={`${theme.card} shadow-2xl backdrop-blur-sm rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 lg:p-10 w-full ${!proveedorInfo || !proveedorInfo.comercial_name ? 'max-w-lg' : 'lg:col-start-2'} border border-gray-200 animate-fade-in hover:shadow-3xl transition-all duration-500 hover:scale-[1.02]`}>
-
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-rose-600 via-pink-500 to-purple-600 bg-clip-text text-transparent mb-4 animate-gradient text-left">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-lg border border-gray-300">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4 text-left">
               Crear el mensaje
             </h1>
-            
+
             <form onSubmit={handleCreate}>
               <div className="space-y-5">
-                <label className="block text-left">
-                  <span className="text-gray-700 font-bold text-xl sm:text-2xl mb-4 block">
+                <label className="block text-left mb-2">
+                  <span className="text-gray-800 font-bold text-2xl block">
                     🎫 Introduce tu código:
                   </span>
                 </label>
-                
-                <div className="flex items-center justify-center gap-2 sm:gap-3 md:gap-4">
-                  <input 
+
+                <div className="flex items-center justify-center gap-2">
+                  <input
                     id="p1"
-                    value={p1} 
-                    onChange={handleP1Change} 
+                    value={p1}
+                    onChange={handleP1Change}
                     onPaste={handlePaste}
                     maxLength={4}
-                    className={`w-24 sm:w-28 md:w-32 p-5 sm:p-6 md:p-7 border-4 rounded-2xl text-center uppercase font-bold text-lg sm:text-xl md:text-2xl shadow-xl focus:ring-4 transition-all duration-300 placeholder:text-sm sm:placeholder:text-base md:placeholder:text-lg ${proveedorError ? 'border-red-400 focus:border-red-500 focus:ring-red-200' : 'border-gray-300 focus:border-rose-500 focus:ring-rose-200'}`}
+                    className={`w-24 p-5 border-2 rounded-xl text-center uppercase font-bold text-xl bg-gray-100 focus:bg-white focus:border-blue-500 ${proveedorError ? 'border-red-400' : 'border-gray-400'}`}
                     placeholder="ABCD"
                     autoComplete="off"
                   />
                   <span className="text-gray-400 text-3xl sm:text-4xl font-bold">-</span>
-                  <input 
+                  <input
                     id="p2"
-                    value={p2} 
+                    value={p2}
                     onChange={handleP2Change}
                     maxLength={3}
-                    className="w-20 sm:w-24 md:w-28 p-5 sm:p-6 md:p-7 border-4 border-gray-300 rounded-2xl text-center font-bold text-lg sm:text-xl md:text-2xl shadow-xl focus:border-rose-500 focus:ring-4 focus:ring-rose-200 transition-all duration-300 placeholder:text-sm sm:placeholder:text-base md:placeholder:text-lg"
+                    className="w-20 p-5 border-2 border-gray-400 rounded-xl text-center font-bold text-xl bg-gray-100 focus:bg-white focus:border-blue-500"
                     placeholder="001"
                     autoComplete="off"
                   />
                   <span className="text-gray-400 text-3xl sm:text-4xl font-bold">-</span>
-                  <input 
+                  <input
                     id="p3"
-                    value={p3} 
+                    value={p3}
                     onChange={handleP3Change}
                     maxLength={3}
-                    className="w-20 sm:w-24 md:w-28 p-5 sm:p-6 md:p-7 border-4 border-gray-300 rounded-2xl text-center font-bold text-lg sm:text-xl md:text-2xl shadow-xl focus:border-rose-500 focus:ring-4 focus:ring-rose-200 transition-all duration-300 placeholder:text-sm sm:placeholder:text-base md:placeholder:text-lg"
+                    className="w-20 p-5 border-2 border-gray-400 rounded-xl text-center font-bold text-xl bg-gray-100 focus:bg-white focus:border-blue-500"
                     placeholder="001"
                     autoComplete="off"
                   />
                   <span className="text-gray-400 text-3xl sm:text-4xl font-bold">-</span>
-                  <input 
+                  <input
                     id="p4"
-                    value={p4} 
+                    value={p4}
                     onChange={handleP4Change}
                     maxLength={3}
-                    className="w-20 sm:w-24 md:w-28 p-5 sm:p-6 md:p-7 border-4 border-gray-300 rounded-2xl text-center uppercase font-bold text-lg sm:text-xl md:text-2xl shadow-xl focus:border-rose-500 focus:ring-4 focus:ring-rose-200 transition-all duration-300 placeholder:text-sm sm:placeholder:text-base md:placeholder:text-lg"
+                    className="w-20 p-5 border-2 border-gray-400 rounded-xl text-center uppercase font-bold text-xl bg-gray-100 focus:bg-white focus:border-blue-500"
                     placeholder="ABC"
                     autoComplete="off"
                   />
                 </div>
-                
-                <p className="text-base sm:text-lg text-gray-600 text-left leading-relaxed mt-4">
-              📝 Ejemplo: <span className="font-mono font-bold text-rose-600 text-xl">ABCD-001-001-ABC</span>
+
+                <p className="text-lg text-gray-700 text-left leading-relaxed mt-4">
+                  📝 Ejemplo: <span className="font-mono font-bold text-blue-700 text-xl">ABCD-001-001-ABC</span>
                 </p>
-                <p className="text-sm sm:text-base text-gray-500 text-left italic">
-                  💡  Puedes pegar el código completo en cualquier campo
+                <p className="text-base text-gray-600 text-left italic">
+                  💡 Puedes pegar el código completo en cualquier campo
                 </p>
               </div>
 
               {errorCreate && (
                 <div
-                  className={`border-2 rounded-xl p-4 mb-4 whitespace-pre-line ${
-                    errorCreate.startsWith("ℹ️")
-                      ? "bg-blue-50 border-blue-300 text-blue-800"
-                      : "bg-red-50 border-red-300 text-red-700"
-                  }`}
+                  className={`border-2 rounded-xl p-4 mb-4 whitespace-pre-line ${errorCreate.startsWith("ℹ️")
+                      ? "bg-blue-100 border-blue-400 text-blue-900"
+                      : "bg-red-100 border-red-400 text-red-900"
+                    }`}
                 >
                   {errorCreate}
                 </div>
               )}
 
               {messageCheck.exists && !messageCheck.expired ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
                     type="button"
                     disabled={loading}
                     onClick={() => navigate(`/create-message/${finalCode}?edit=1`)}
-                    className="w-full bg-gradient-to-r from-amber-500 via-orange-500 to-pink-500 hover:from-amber-600 hover:via-orange-600 hover:to-pink-600 text-white font-bold py-5 sm:py-6 rounded-2xl text-lg sm:text-xl md:text-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-blue-600 text-white font-bold py-5 rounded-xl text-xl focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     ✏️ Modificar mensaje
                   </button>
@@ -482,7 +480,7 @@ export default function Landing() {
                     type="button"
                     disabled={loading || !proveedorInfo}
                     onClick={handleDeleteExisting}
-                    className="w-full bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white font-bold py-5 sm:py-6 rounded-2xl text-lg sm:text-xl md:text-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-red-600 text-white font-bold py-5 rounded-xl text-xl focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     🗑️ Borrar mensaje
                   </button>
@@ -491,7 +489,7 @@ export default function Landing() {
                 <button
                   type="submit"
                   disabled={loading || !proveedorInfo}
-                  className="w-full bg-gradient-to-r from-rose-500 via-pink-500 to-purple-500 hover:from-rose-600 hover:via-pink-600 hover:to-purple-600 text-white font-bold py-6 sm:py-7 rounded-2xl text-xl sm:text-2xl md:text-3xl shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-blue-600 text-white font-bold py-6 rounded-xl text-2xl focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? "🔄 Validando..." : "✨ Crear mensaje"}
                 </button>
@@ -526,7 +524,7 @@ export default function Landing() {
 
       {/* Sidebar FAQs colapsable */}
       <div className={`fixed top-0 right-0 h-full z-30 transition-transform duration-300 ${faqSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-        <div className={`${theme.card} h-full w-[92vw] sm:w-[420px] border-l border-gray-200 shadow-2xl backdrop-blur-sm`}> 
+        <div className={`${theme.card} h-full w-[92vw] sm:w-[420px] border-l border-gray-200 shadow-2xl backdrop-blur-sm`}>
           <div className="p-6 overflow-y-auto h-full">
             <div className="flex items-center justify-between mb-4">
               <h3 className={`text-2xl font-bold ${theme.primaryText}`}>Preguntas frecuentes</h3>
@@ -595,30 +593,45 @@ export default function Landing() {
       {/* Modal ¿Cómo funciona? */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-md flex justify-center items-center z-20 animate-fade-in px-4">
-          <div className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 max-w-lg w-full shadow-2xl text-center relative animate-scale-in border-2 border-rose-200">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 w-[80vw] max-w-9xl shadow-2xl text-center relative animate-scale-in border-2 border-rose-200 mt-16">
 
             <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent mb-4 sm:mb-6">💡 ¿Cómo funciona?</h2>
 
             <p className="text-gray-700 text-left leading-relaxed text-sm sm:text-base">
-              <strong>🎥 Crear mensaje:</strong> Introduce tu código XXXX y podrás grabar video, audio o escribir un mensaje para tu destinatario.
+              Este servicio digital de mensajes es un <strong>servicio externo e independiente del establecimiento físico </strong>donde se adquiere el regalo. El establecimiento actúa únicamente como punto de entrega del código, pero <strong>no gestiona ni almacena los mensajes.</strong>
               <br /><br />
-              <strong>🌸 Ver mensaje:</strong> El destinatario introduce su código XXXX para ver el mensaje especial que ha recibido.
-              <br /><br />
-              <strong>📱 NFC:</strong> Si el móvil tiene NFC, basta con acercarlo al ramo.
-            </p>
 
-            <button
-              onClick={() => setShowModal(false)}
-              className="mt-8 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 font-semibold"
-            >
-              ✓ Entendido
-            </button>
-          </div>
+              <strong>Crear mensaje:</strong> Introduce tu código único con formato <strong>xxxx-xxx-xxx-xxx</strong> y podrás grabar un <strong>vídeo</strong>, un <strong>audio</strong> o escribir un <strong>mensaje personalizado </strong> para tu destinatario.
+              <br /><br />
+              <strong>Ver mensaje:</strong> El destinatario solo tiene que introducir el mismo código <strong> xxxx-xxx-xxx-xxx</strong> para acceder al mensaje especial que ha recibido.<br />
+            Además, si lo desea, podrá <strong> responder con otra dedicatoria</strong> utilizando el mismo servicio.
+            <br /><br />
+            <strong>Acceso mediante BFC o QR:</strong> Si el móvil dispone de tecnología <strong>NFC</strong>, basta con acercarlo al regalo para acceder directamente al mensaje.
+            También es posible acceder escaneando el <strong>código QR</strong> que acompaña al producto.
+            <br /><br />
+            <strong>Editar o elimina un mensaje:</strong> Durante los <strong>primeros 7 días </strong> tras la creación, el mensaje puede ser modificado o eliminado accediendo de nuevo a la opción Crear mensaje e introduciendo el mismo código.
+            <br /><br />
+            <strong>Soporte Técnico:</strong> Si tienes cualquier duda o incidencia técnica, puedes:
+            <ul>
+              <li>Contactar con el proveedor que te ha facilitado el código</li>
+              <li>Escribir directamente a nuestro equipo de soporte en 📧 <a href="mailto: soporte@mensajeparati.com">soporte@mensajeparati.com</a></li>
+            </ul>
+
+          </p>
+
+          <button
+            onClick={() => setShowModal(false)}
+            className="mt-8 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 font-semibold"
+          >
+            ✓ Entendido
+          </button>
         </div>
-      )}
+        </div>
+  )
+}
 
-      {/* Animaciones */}
-      <style>{`
+{/* Animaciones */ }
+<style>{`
         @keyframes float-slow {
           0%, 100% { transform: translate(0, 0) rotate(0deg); }
           33% { transform: translate(30px, -30px) rotate(3deg); }
@@ -659,25 +672,25 @@ export default function Landing() {
         }
       `}</style>
 
-      {/* Modal de confirmación para borrar */}
-      <ConfirmModal
-        isOpen={showDeleteConfirm}
-        onClose={() => setShowDeleteConfirm(false)}
-        onConfirm={confirmDelete}
-        title="¿Borrar mensaje?"
-        message={`¿Estás seguro de que deseas borrar el mensaje del código ${finalCode}?\n\nEsta acción no se puede deshacer.`}
-        confirmText="Sí, borrar"
-        cancelText="Cancelar"
-        type="danger"
-      />
+{/* Modal de confirmación para borrar */ }
+<ConfirmModal
+  isOpen={showDeleteConfirm}
+  onClose={() => setShowDeleteConfirm(false)}
+  onConfirm={confirmDelete}
+  title="¿Borrar mensaje?"
+  message={`¿Estás seguro de que deseas borrar el mensaje del código ${finalCode}?\n\nEsta acción no se puede deshacer.`}
+  confirmText="Sí, borrar"
+  cancelText="Cancelar"
+  type="danger"
+/>
 
-      {/* Toast para notificaciones */}
-      <Toast
-        isOpen={toast.isOpen}
-        onClose={() => setToast({ ...toast, isOpen: false })}
-        message={toast.message}
-        type={toast.type}
-      />
-    </div>
+{/* Toast para notificaciones */ }
+<Toast
+  isOpen={toast.isOpen}
+  onClose={() => setToast({ ...toast, isOpen: false })}
+  message={toast.message}
+  type={toast.type}
+/>
+    </div >
   );
 }

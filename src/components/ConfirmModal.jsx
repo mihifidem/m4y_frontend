@@ -28,23 +28,16 @@ export default function ConfirmModal({
   const style = typeStyles[type] || typeStyles.danger;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-md flex justify-center items-center z-50 animate-fade-in">
-      <div className="bg-white rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl text-center relative animate-scale-in border-2 border-gray-200">
-        <div className="text-6xl mb-4 animate-bounce">{style.icon}</div>
-        
-        <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-4">
-          {title}
-        </h2>
-        
-        <p className="text-gray-700 mb-6 leading-relaxed whitespace-pre-line">
-          {message}
-        </p>
-        
-        <div className="flex gap-3 justify-center">
+    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-md flex justify-center items-center z-50 animate-fade-in overflow-y-auto">
+      <div className="bg-white rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl text-center relative animate-scale-in border-2 border-gray-200 max-h-[90vh] overflow-y-auto">
+        <div className="text-7xl mb-6">{style.icon}</div>
+        <h2 className="text-3xl font-bold text-gray-900 mb-6">{title}</h2>
+        <p className="text-gray-800 text-xl mb-8 leading-relaxed whitespace-pre-line">{message}</p>
+        <div className="flex gap-6 justify-center">
           {cancelText && (
             <button
               onClick={onClose}
-              className="bg-gradient-to-r from-gray-400 to-gray-500 hover:from-gray-500 hover:to-gray-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+              className="bg-gray-300 text-gray-900 px-8 py-4 rounded-xl text-xl font-bold focus:outline-none"
             >
               {cancelText}
             </button>
@@ -54,7 +47,7 @@ export default function ConfirmModal({
               onConfirm();
               onClose();
             }}
-            className={`bg-gradient-to-r ${style.gradient} text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105`}
+            className="bg-blue-600 text-white px-8 py-4 rounded-xl text-xl font-bold focus:outline-none"
           >
             {confirmText}
           </button>

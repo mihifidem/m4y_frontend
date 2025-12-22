@@ -1,15 +1,5 @@
-// Normaliza la URL para evitar dobles o faltantes de slash
-function normalizeUrl(base, path) {
-  if (!base) return path;
-  if (!path) return base;
-  if (base.endsWith("/") && path.startsWith("/")) {
-    return base + path.slice(1);
-  }
-  if (!base.endsWith("/") && !path.startsWith("/")) {
-    return base + "/" + path;
-  }
-  return base + path;
-}
+
+import normalizeUrl from "../utils/normalizeUrl";
 
 import { useEffect, useState, useRef } from "react";
 import ConfirmModal from "../components/ConfirmModal";
@@ -260,10 +250,6 @@ export default function ViewMessage() {
               ← Cancelar
             </button>
 
-            <audio
-              ref={audioAmbientRef}
-              src="https://cdn.pixabay.com/download/audio/2021/09/14/audio_24a65e497986.mp3?filename=romantic-music-110695.mp3"
-            />
           </>
         )}
       </div>

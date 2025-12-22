@@ -11,14 +11,22 @@ export default function InstructionsView() {
             <span className="text-3xl bg-white rounded-full shadow-lg p-3 border-2 border-blue-200">1</span>
             <div>
               <h2 className="font-bold text-lg text-blue-700 mb-1 flex items-center gap-2"><span>Introduce tu código</span> <span className="text-xl">🔑</span></h2>
-              <p className="text-gray-700">Ingresa el código único que recibiste para acceder al mensaje. Puedes copiarlo y pegarlo en el campo correspondiente.</p>
+              <p className="text-gray-700">Ingresa el código único que encontrarás debajo del código QR. xxxx-xxx-xxx-xxx.</p>
+              <div className="flex gap-4 mt-3">
+                <img src="/code_card.png" alt="Ejemplo de código" className="w-48 rounded-xl border-2 border-gray-200 shadow" />
+                <img src="/code_card2.jpeg" alt="Ejemplo de QR" className="w-48 rounded-xl border-2 border-gray-200 shadow" />
+              </div>
             </div>
           </li>
           <li className="flex items-start gap-4">
             <span className="text-3xl bg-white rounded-full shadow-lg p-3 border-2 border-purple-200">2</span>
             <div>
               <h2 className="font-bold text-lg text-purple-700 mb-1 flex items-center gap-2"><span>Disfruta tu mensaje</span> <span className="text-xl">💌</span></h2>
-              <p className="text-gray-700">Verás el mensaje personalizado, que puede incluir texto, audio o video. ¡Tómate tu tiempo para disfrutarlo!</p>
+              <p className="text-gray-700">Verás el mensaje personalizado, que puede incluir texto, audio y video. ¡Tómate tu tiempo para disfrutarlo!</p>
+               <div className="flex gap-4 mt-3">
+                
+                <img src="/message.jpeg" alt="Ejemplo de QR" className="w-48 rounded-xl border-2 border-gray-200 shadow" />
+              </div>
             </div>
           </li>
           <li className="flex items-start gap-4">

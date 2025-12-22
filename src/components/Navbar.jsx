@@ -1,12 +1,14 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { AuthContext } from "../auth/AuthContext";
+
 
 export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useContext(AuthContext);
-  
+  const [menuOpen, setMenuOpen] = useState(false);
+
   const isActive = (path) => {
     if (path === "/" && location.pathname === "/") return true;
     if (path !== "/" && location.pathname.startsWith(path)) return true;
@@ -19,78 +21,105 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="w-full bg-gradient-to-r from-rose-50 via-pink-50 to-purple-50 backdrop-blur-lg border-b-2 border-rose-200 shadow-lg sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 flex items-center justify-between">
-        {/* Logo con animación */}
-        <Link 
-          to="view-message/" 
-          className="group flex items-center gap-2 sm:gap-3 font-bold text-lg sm:text-xl md:text-2xl hover:scale-110 transition-all duration-300"
-        >
-          <span className="text-2xl sm:text-3xl group-hover:rotate-12 transition-transform duration-300">🎁</span>
-          <span className="hidden sm:inline relative">
-            {/* Badge de notificación - número que se transforma */}
-            <span className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-br from-red-500 to-pink-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg group-hover:hidden z-10 animate-pulse">
-              1
-            </span>
-            
-            {/* Corazón sorpresa que aparece al hover */}
-            <span className="absolute -top-3 -right-3 w-8 h-8 hidden group-hover:flex items-center justify-center z-20 animate-heartBurst">
-              <svg className="w-full h-full" viewBox="0 0 30 30" fill="none">
-                <defs>
-                  <linearGradient id="heartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style={{stopColor: '#ff0080', stopOpacity: 1}} />
-                    <stop offset="50%" style={{stopColor: '#ff4444', stopOpacity: 1}} />
-                    <stop offset="100%" style={{stopColor: '#ffaa00', stopOpacity: 1}} />
-                  </linearGradient>
-                </defs>
-                <path 
-                  d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" 
-                  fill="url(#heartGradient)"
-                  className="animate-heartPulse"
-                />
-              </svg>
-            </span>
-            
-            {/* Partículas de estrellas y corazones que explotan */}
-            
-            
-            <span className="bg-gradient-to-r from-rose-600 via-pink-500 to-purple-600 bg-clip-text text-transparent animate-gradient group-hover:opacity-0 transition-opacity duration-300">Un Mensaje</span>
-            <span className="absolute top-0 left-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap bg-gradient-to-r from-rose-600 via-pink-500 to-purple-600 bg-clip-text text-transparent animate-gradient">para Ti</span>
-          </span>
-        </Link>
-
-        {/* Enlaces principales */}
-        <div className="flex items-center gap-1 sm:gap-2">
-          <Link
-            to="/home-info"
-            className={`group flex items-center gap-2 px-4 py-2 rounded-xl text-base font-semibold shadow-lg transition-all duration-300 bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 text-white hover:from-pink-600 hover:to-purple-600 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-pink-400 ${isActive("/home-info") ? "ring-2 ring-pink-400" : ""}`}
+    <>
+      <nav className="w-full bg-white border-b border-gray-300 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-2 py-2 flex items-center justify-between">
+          {/* Logo con animación */}
+          <Link 
+            to="view-message/" 
+            className="flex items-center gap-2 font-bold text-2xl text-gray-800 group relative"
           >
-            <span className="transition-transform duration-300 group-hover:scale-125">🏠</span>
+            <span className="relative inline-block">
+              <span className="text-4xl logo-anim">🎁</span>
+              <span className="absolute -top-2 -right-2 w-6 h-6 bg-red-600 text-white text-xs font-bold rounded-full flex items-center justify-center shadow z-10 border-2 border-white transition-all duration-300 badge-heart group-hover:badge-heart-anim">
+                <span className="badge-heart-content">1</span>
+              </span>
+              {/* Corazones animados */}
+              <span className="absolute left-1/2 top-1/2 pointer-events-none select-none hearts-container">
+                <span className="heart absolute opacity-0 group-hover:heart-anim" style={{left: '-18px', top: '-30px'}}>💖</span>
+                <span className="heart absolute opacity-0 group-hover:heart-anim2" style={{left: '10px', top: '-38px'}}>💗</span>
+                <span className="heart absolute opacity-0 group-hover:heart-anim3" style={{left: '-8px', top: '-50px'}}>💓</span>
+              </span>
+            </span>
+            <span className="hidden sm:inline logo-text-anim group-hover:logo-text-anim-hover">Mensaje para Ti</span>
+          </Link>
+
+          {/* Enlaces principales - ocultos en móvil, visibles en sm+ */}
+          <div className="hidden sm:flex items-center gap-2">
+            <Link
+            to="/home-info"
+            className="flex items-center gap-2 px-6 py-3 rounded-lg text-xl font-bold text-gray-800 bg-gray-200 hover:bg-gray-300 focus:outline-none"
+          >
+            <span className="text-2xl">🏠</span>
             Inicio
           </Link>
           <Link
             to="/"
-            className={`group flex items-center gap-2 px-4 py-2 rounded-xl text-base font-semibold shadow-lg transition-all duration-300 bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 text-white hover:from-pink-600 hover:to-purple-600 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-pink-400 ${isActive("/create-message") ? "ring-2 ring-pink-400" : ""}`}
+            className="flex items-center gap-2 px-6 py-3 rounded-lg text-xl font-bold text-gray-800 bg-gray-200 hover:bg-gray-300 focus:outline-none"
           >
-            <span className="transition-transform duration-300 group-hover:scale-125">✉️</span>
-            Crear Mensaje
+            <span className="text-2xl">✉️</span>
+            Crear
           </Link>
           <Link
             to="/view-message"
-            className={`group flex items-center gap-2 px-4 py-2 rounded-xl text-base font-semibold shadow-lg transition-all duration-300 bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 text-white hover:from-pink-600 hover:to-purple-600 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-pink-400 ${(isActive("/view-message") || isActive("/view/")) ? "ring-2 ring-pink-400" : ""}`}
+            className="flex items-center gap-2 px-6 py-3 rounded-lg text-xl font-bold text-gray-800 bg-gray-200 hover:bg-gray-300 focus:outline-none"
           >
-            <span className="transition-transform duration-300 group-hover:scale-125">👁️</span>
-            Ver Mensaje
+            <span className="text-2xl">👁️</span>
+            Ver
           </Link>
-          {/* Enlace solo para admin */}
-          {user && user.is_staff && (
+          {user && user.is_staff ? (
             <Link
               to="/admin-codes"
-              className={`group flex items-center gap-2 px-4 py-2 rounded-xl text-base font-semibold shadow-lg transition-all duration-300 bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 text-white hover:from-pink-600 hover:to-purple-600 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-pink-400 ${isActive("/admin-codes") ? "ring-2 ring-pink-400" : ""}`}
+              className="flex items-center gap-2 px-6 py-3 rounded-lg text-xl font-bold text-gray-800 bg-gray-200 hover:bg-gray-300 focus:outline-none"
             >
-              <span className="transition-transform duration-300 group-hover:scale-125">🛠️</span>
-              Admin Códigos
+              <span className="text-2xl">🛠️</span>
+              Gestión
             </Link>
+          ) : null}
+          <Link
+            to="/login"
+            className="flex items-center gap-2 px-6 py-3 rounded-lg text-xl font-bold text-gray-800 bg-gray-200 hover:bg-gray-300 focus:outline-none"
+          >
+            <span className="text-2xl">🏪</span>
+            Comercios
+          </Link>
+        </div>
+
+        {/* Menú hamburguesa solo en móvil */}
+        <div className="flex sm:hidden items-center">
+          <button
+            className="p-3 rounded-md bg-gray-200 text-3xl text-gray-800 focus:outline-none"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Abrir menú"
+          >
+            ☰
+          </button>
+          {/* Panel lateral */}
+          {menuOpen && (
+            <div className="fixed inset-0 z-50 bg-black bg-opacity-60 flex justify-end">
+              <div className="w-72 bg-white h-full p-4 flex flex-col gap-4 overflow-y-auto">
+                <button className="self-end mb-2 text-3xl text-gray-800" onClick={() => setMenuOpen(false)} aria-label="Cerrar menú">
+                  ×
+                </button>
+                <Link to="/home-info" className="flex items-center gap-3 px-4 py-4 rounded-lg text-xl font-bold text-gray-800 bg-gray-200 hover:bg-gray-300" onClick={() => setMenuOpen(false)}>
+                  <span className="text-2xl">🏠</span> Inicio
+                </Link>
+                <Link to="/" className="flex items-center gap-3 px-4 py-4 rounded-lg text-xl font-bold text-gray-800 bg-gray-200 hover:bg-gray-300" onClick={() => setMenuOpen(false)}>
+                  <span className="text-2xl">✉️</span> Crear
+                </Link>
+                <Link to="/view-message" className="flex items-center gap-3 px-4 py-4 rounded-lg text-xl font-bold text-gray-800 bg-gray-200 hover:bg-gray-300" onClick={() => setMenuOpen(false)}>
+                  <span className="text-2xl">👁️</span> Ver
+                </Link>
+                {user && user.is_staff ? (
+                  <Link to="/admin-codes" className="flex items-center gap-3 px-4 py-4 rounded-lg text-xl font-bold text-gray-800 bg-gray-200 hover:bg-gray-300" onClick={() => setMenuOpen(false)}>
+                    <span className="text-2xl">🛠️</span> Gestión
+                  </Link>
+                ) : null}
+                <Link to="/login" className="flex items-center gap-3 px-4 py-4 rounded-lg text-xl font-bold text-gray-800 bg-gray-200 hover:bg-gray-300" onClick={() => setMenuOpen(false)}>
+                  <span className="text-2xl">🏪</span> Comercios
+                </Link>
+              </div>
+            </div>
           )}
         </div>
 
@@ -205,5 +234,102 @@ export default function Navbar() {
         .animate-particle8 { animation: particle8 1s ease-out forwards; }
       `}</style>
     </nav>
-  );
+    <style>{`
+      @keyframes logo-bounce-spin {
+        0% { transform: scale(1) rotate(0deg); }
+        20% { transform: scale(1.15) rotate(12deg); }
+        40% { transform: scale(0.95) rotate(-8deg); }
+        60% { transform: scale(1.1) rotate(8deg); }
+        80% { transform: scale(1.05) rotate(-4deg); }
+        100% { transform: scale(1) rotate(0deg); }
+      }
+      @keyframes logo-text-move {
+        0% { transform: scale(1) translateY(0); }
+        30% { transform: scale(1.08) translateY(-4px); }
+        60% { transform: scale(1.12) translateY(-8px); }
+        100% { transform: scale(1) translateY(0); }
+      }
+      @keyframes heart-float1 {
+        0% { opacity: 0; transform: translateY(0) scale(0.7) rotate(-10deg); }
+        10% { opacity: 1; }
+        80% { opacity: 1; }
+        100% { opacity: 0; transform: translateY(-40px) scale(1.2) rotate(10deg); }
+      }
+      @keyframes heart-float2 {
+        0% { opacity: 0; transform: translateY(0) scale(0.7) rotate(10deg); }
+        10% { opacity: 1; }
+        80% { opacity: 1; }
+        100% { opacity: 0; transform: translateY(-50px) scale(1.2) rotate(-10deg); }
+      }
+      @keyframes heart-float3 {
+        0% { opacity: 0; transform: translateY(0) scale(0.7) rotate(0deg); }
+        10% { opacity: 1; }
+        80% { opacity: 1; }
+        100% { opacity: 0; transform: translateY(-60px) scale(1.2) rotate(0deg); }
+      }
+      .logo-anim {
+        display: inline-block;
+        transition: transform 0.3s;
+      }
+      .logo-text-anim {
+        display: inline-block;
+        transition: transform 0.3s;
+      }
+      .group:hover .logo-anim {
+        animation: logo-bounce-spin 0.7s cubic-bezier(.4,0,.2,1) both;
+      }
+      .group:hover .logo-text-anim {
+        animation: logo-text-move 0.7s cubic-bezier(.4,0,.2,1) both;
+      }
+      .heart {
+        font-size: 1.5rem;
+        pointer-events: none;
+        opacity: 0;
+      }
+      .group:hover .heart-anim {
+        animation: heart-float1 1.1s ease-in-out;
+        opacity: 1;
+      }
+      .group:hover .heart-anim2 {
+        animation: heart-float2 1.1s ease-in-out 0.1s;
+        opacity: 1;
+      }
+      .group:hover .heart-anim3 {
+        animation: heart-float3 1.1s ease-in-out 0.2s;
+        opacity: 1;
+      }
+      .badge-heart-content {
+        display: inline-block;
+        transition: opacity 0.2s, transform 0.3s;
+      }
+      .group:hover .badge-heart-content {
+        opacity: 0;
+        transform: scale(0.5) translateY(-8px);
+      }
+      .badge-heart::after {
+        content: '';
+        display: none;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%) scale(0.7);
+        font-size: 1.1rem;
+        color: #fff;
+        transition: opacity 0.2s, transform 0.3s;
+      }
+      .group:hover .badge-heart::after {
+        content: '💖';
+        display: block;
+        opacity: 1;
+        animation: badge-heart-pop 0.7s cubic-bezier(.4,0,.2,1);
+      }
+      @keyframes badge-heart-pop {
+        0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5) rotate(-10deg); }
+        40% { opacity: 1; transform: translate(-50%, -70%) scale(1.2) rotate(10deg); }
+        70% { opacity: 1; transform: translate(-50%, -90%) scale(1.1) rotate(-8deg); }
+        100% { opacity: 0; transform: translate(-50%, -120%) scale(0.7) rotate(0deg); }
+      }
+    `}</style>
+  </>
+);
 }
