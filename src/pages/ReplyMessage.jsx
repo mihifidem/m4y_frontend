@@ -14,16 +14,21 @@ export default function ReplyMessage() {
   const [videoChunks, setVideoChunks] = useState([]);
   const [videoPreview, setVideoPreview] = useState(null);
   const [recordingVideo, setRecordingVideo] = useState(false);
+  const [videoRecordingTime, setVideoRecordingTime] = useState(0);
+  const videoTimerRef = useRef(null);
 
   // AUDIO
   const mediaRecorderAudio = useRef(null);
   const [audioChunks, setAudioChunks] = useState([]);
   const [audioPreview, setAudioPreview] = useState(null);
   const [recordingAudio, setRecordingAudio] = useState(false);
+  const [audioRecordingTime, setAudioRecordingTime] = useState(0);
+  const audioTimerRef = useRef(null);
 
   const [sending, setSending] = useState(false);
   const [alreadyReplied, setAlreadyReplied] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
 
   // Verificar si ya se envió una respuesta
   useEffect(() => {
@@ -77,10 +82,17 @@ export default function ReplyMessage() {
         if (videoRef.current) {
           videoRef.current.srcObject = null;
         }
+        if (videoTimerRef.current) {
+          clearInterval(videoTimerRef.current);
+        }
       };
 
       recorder.start();
       setRecordingVideo(true);
+      setVideoRecordingTime(0);
+      videoTimerRef.current = setInterval(() => {
+        setVideoRecordingTime((prev) => prev + 1);
+      }, 1000);
     } catch (err) {
       console.error("Error cámara:", err);
     }
@@ -90,6 +102,9 @@ export default function ReplyMessage() {
     setRecordingVideo(false);
     if (mediaRecorderVideo.current) {
       mediaRecorderVideo.current.stop();
+    }
+    if (videoTimerRef.current) {
+      clearInterval(videoTimerRef.current);
     }
   };
 
@@ -115,10 +130,17 @@ export default function ReplyMessage() {
         const blob = new Blob(chunks, { type: "audio/webm" });
         setAudioPreview(URL.createObjectURL(blob));
         stream.getTracks().forEach((t) => t.stop());
+        if (audioTimerRef.current) {
+          clearInterval(audioTimerRef.current);
+        }
       };
 
       recorder.start();
       setRecordingAudio(true);
+      setAudioRecordingTime(0);
+      audioTimerRef.current = setInterval(() => {
+        setAudioRecordingTime((prev) => prev + 1);
+      }, 1000);
     } catch (err) {
       console.error("Error micrófono:", err);
     }
@@ -129,7 +151,16 @@ export default function ReplyMessage() {
     if (mediaRecorderAudio.current) {
       mediaRecorderAudio.current.stop();
     }
+    if (audioTimerRef.current) {
+      clearInterval(audioTimerRef.current);
+    }
   };
+  // Formatea el tiempo mm:ss
+  function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  }
 
 
   // =============================================
@@ -137,6 +168,7 @@ export default function ReplyMessage() {
   // =============================================
   const handleSubmit = async () => {
     setSending(true);
+    setErrorMsg("");
 
     const formData = new FormData();
     formData.append("text", text);
@@ -152,13 +184,24 @@ export default function ReplyMessage() {
     }
 
     const url = `/message/${code}/reply/`;
-    console.log("Enviando reply a:", url, "con code:", code);
+    console.log("[DEBUG] Valor de code:", code);
+    console.log("[DEBUG] URL a enviar:", url);
+    console.log("[DEBUG] FormData keys:", Array.from(formData.keys()));
     try {
       await api.post(url, formData);
       navigate(`/reply-sent/${code}`);
     } catch (err) {
-      console.error("Error al enviar reply:", err);
-      alert("Error enviando la respuesta.");
+      console.error("[DEBUG] Error al enviar reply:", err);
+      let msg = "Error enviando la respuesta.";
+      if (err.response) {
+        msg += `\nStatus: ${err.response.status}`;
+        if (err.response.data && typeof err.response.data === "object") {
+          msg += `\n${JSON.stringify(err.response.data)}`;
+        } else if (typeof err.response.data === "string") {
+          msg += `\n${err.response.data}`;
+        }
+      }
+      setErrorMsg(msg);
     }
 
     setSending(false);
@@ -175,6 +218,13 @@ export default function ReplyMessage() {
       <div className="absolute inset-0 opacity-30 bg-cover bg-center z-0" style={{ backgroundImage: "url('/f1.jpg')" }}></div>
 
       <div className="relative bg-white p-8 rounded-3xl max-w-3xl w-full shadow-xl animate-fadeIn">
+
+        {/* Mostrar error si existe */}
+        {(!!errorMsg || errorMsg === 0) && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 whitespace-pre-wrap" data-testid="error-message">
+            <strong>Error:</strong> {typeof errorMsg === 'string' && errorMsg.length > 0 ? errorMsg : 'Ha ocurrido un error inesperado.'}
+          </div>
+        )}
 
         {loading ? (
           <div className="text-center py-12">
@@ -244,6 +294,13 @@ export default function ReplyMessage() {
             ></video>
           )}
 
+          {recordingVideo && (
+            <div className="bg-red-100 border-2 border-red-400 rounded-lg p-2 mb-2 flex items-center justify-center gap-2 text-sm">
+              <span className="text-red-600 text-2xl animate-pulse">⏺</span>
+              <span className="text-lg font-bold text-red-700 font-mono">{formatTime(videoRecordingTime)}</span>
+            </div>
+          )}
+
           {!recordingVideo ? (
             <button
               onClick={startVideoRecording}
@@ -269,6 +326,13 @@ export default function ReplyMessage() {
 
           {audioPreview && (
             <audio controls src={audioPreview} className="w-full mb-3"></audio>
+          )}
+
+          {recordingAudio && (
+            <div className="bg-blue-100 border-2 border-blue-400 rounded-lg p-2 mb-2 flex items-center justify-center gap-2 text-sm">
+              <span className="text-blue-600 text-2xl animate-pulse">⏺</span>
+              <span className="text-lg font-bold text-blue-700 font-mono">{formatTime(audioRecordingTime)}</span>
+            </div>
           )}
 
           {!recordingAudio ? (

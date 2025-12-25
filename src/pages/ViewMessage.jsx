@@ -45,8 +45,18 @@ export default function ViewMessage() {
       reader.onreading = (event) => {
         const textDecoder = new TextDecoder();
         for (const record of event.message.records) {
-          const decoded = textDecoder.decode(record.data);
-          console.log("NFC detectado:", decoded);
+          let decoded = textDecoder.decode(record.data);
+          if (typeof decoded === 'string') {
+            decoded = decoded.toUpperCase();
+            console.log("NFC detectado (mayúsculas):", decoded);
+            // Redirigir automáticamente si es un código válido
+            const regex = /^[A-Z]{4}-[0-9]{3}-[0-9]{3}-[A-Z]{3}$/;
+            if (regex.test(decoded)) {
+              navigate(`/view/${decoded}`);
+            }
+          } else {
+            console.log("NFC detectado:", decoded);
+          }
         }
       };
     } catch (err) {
@@ -234,15 +244,7 @@ export default function ViewMessage() {
               </button>
             )}
 
-            {/* MÚSICA */}
-            <button
-              onClick={() => setPlayMusic(!playMusic)}
-              className="mt-3 sm:mt-4 bg-purple-500 text-white w-full p-2.5 sm:p-3 md:p-3.5 rounded-lg sm:rounded-xl text-sm sm:text-base md:text-lg shadow hover:bg-purple-600 transition-all"
-            >
-              {playMusic ? "🔇 Detener música" : "🎶 Música suave"}
-            </button>
-
-            {/* CANCELAR */}
+         {/* CANCELAR */}
             <button
               onClick={() => navigate("/")}
               className="mt-3 sm:mt-4 bg-gray-500 text-white w-full p-2.5 sm:p-3 md:p-3.5 rounded-lg sm:rounded-xl text-sm sm:text-base md:text-lg shadow hover:bg-gray-600 transition-all"

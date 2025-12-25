@@ -2,7 +2,7 @@ import axios from "axios";
 
 const api = axios.create({
   // baseURL: "http://django_backend:8000/api", // docker!!!
-  baseURL: "http://localhost:8000/api", // local!!!
+  baseURL: "/api", // producción o proxy
 });
 
 api.interceptors.request.use((config) => {

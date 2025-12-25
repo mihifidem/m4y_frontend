@@ -89,6 +89,8 @@ function App() {
             <Route path="/view/:code" element={<ViewMessage />} />
             {/* Responder mensaje (destinatario) */}
             <Route path="/reply/:code" element={<ReplyMessage />} />
+            {/* Confirmación de respuesta enviada */}
+            <Route path="/reply-sent/:code" element={<ReplySent />} />
             {/* 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>

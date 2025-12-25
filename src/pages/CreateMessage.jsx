@@ -4,6 +4,19 @@ import api from "../api/axios";
 import ConfirmModal from "../components/ConfirmModal";
 import Toast from "../components/Toast";
 
+// Utilidad para normalizar URLs de media
+function normalizeUrl(base, path) {
+  if (!path) return '';
+  if (path.startsWith('http')) return path;
+  if (base && base.endsWith('/') && path.startsWith('/')) {
+    return base + path.slice(1);
+  }
+  if (base && !base.endsWith('/') && !path.startsWith('/')) {
+    return base + '/' + path;
+  }
+  return (base || '') + path;
+}
+
 export default function CreateMessage() {
   const { code } = useParams();
   const navigate = useNavigate();
@@ -16,6 +29,8 @@ export default function CreateMessage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showAlert, setShowAlert] = useState({ isOpen: false, title: "", message: "", type: "info" });
   const [toast, setToast] = useState({ isOpen: false, message: "", type: "success" });
+  const [reply, setReply] = useState(null);
+  const [showReplyModal, setShowReplyModal] = useState(false);
 
   // Cargar datos previos automáticamente al entrar en modo edición
   useEffect(() => {
@@ -23,11 +38,23 @@ export default function CreateMessage() {
       setText(existingMessage.text || "");
       setBuyerEmail(existingMessage.buyer_email || "");
       if (existingMessage.video) {
-        setVideoPreview(`${import.meta.env.VITE_API_URL}${existingMessage.video}`);
+        setVideoPreview(normalizeUrl(import.meta.env.VITE_API_URL, existingMessage.video));
       }
       if (existingMessage.audio) {
-        setAudioPreview(`${import.meta.env.VITE_API_URL}${existingMessage.audio}`);
+        setAudioPreview(normalizeUrl(import.meta.env.VITE_API_URL, existingMessage.audio));
       }
+    // Normaliza la URL para media (audio/video)
+    function normalizeUrl(base, path) {
+      if (!path) return '';
+      if (path.startsWith('http')) return path;
+      if (base && base.endsWith('/') && path.startsWith('/')) {
+        return base + path.slice(1);
+      }
+      if (base && !base.endsWith('/') && !path.startsWith('/')) {
+        return base + '/' + path;
+      }
+      return (base || '') + path;
+    }
     }
   }, [isEditMode, existingMessage]);
 
@@ -49,44 +76,33 @@ export default function CreateMessage() {
         setCodePart2(parts[1]);
         setCodePart3(parts[2]);
         setCodePart4(parts[3]);
-        
+
         // Validar el código con el backend
         api.post("/check_code/", { code })
           .then((res) => {
             if (res.data.valid) {
               setCodeValidated(true);
-              
+
               // Verificar si ya existe un mensaje para este código (peek sin incrementar vistas)
               api.get(`/message/${code}/peek/`)
                 .then((msgRes) => {
-                  console.log("Respuesta del mensaje:", msgRes.data);
-                  
                   // Si el backend devuelve exists: true, hay un mensaje
                   if (msgRes.data && msgRes.data.exists !== false && msgRes.data.created_at) {
-                    // Verificar si han pasado más de 7 días desde la creación
-                    const createdDate = new Date(msgRes.data.created_at);
-                    const now = new Date();
-                    const daysDiff = (now - createdDate) / (1000 * 60 * 60 * 24);
-                    
-                    console.log("Mensaje existente detectado");
-                    console.log("Fecha creación:", createdDate);
-                    console.log("Días desde creación:", daysDiff);
-                    
-                    if (daysDiff <= 7) {
-                      // Menos de una semana, permitir editar/borrar
-                      console.log("✅ Permitiendo editar/borrar (menos de 7 días)");
-                      setMessageExists(true);
-                      setExistingMessage(msgRes.data);
-                    } else {
-                      // Más de una semana, no permitir modificaciones
-                      console.log("❌ Más de 7 días, no se puede modificar");
-                      setValidating(false);
-                      // No redirigir, solo mostrar mensaje de periodo caducado
-                      setMessageExists(false);
-                      setExistingMessage({ ...msgRes.data, expired_edit: true });
-                    }
+                    // Buscar si existe reply
+                    api.get(`/message/${code}/reply-view/`)
+                      .then((replyRes) => {
+                        console.log('[DEBUG] Respuesta del endpoint reply-view:', replyRes.data);
+                        setReply(replyRes.data);
+                        setMessageExists(true);
+                        setExistingMessage(msgRes.data);
+                      })
+                      .catch((err) => {
+                        // Si no hay reply, permitir editar/borrar
+                        setReply(null);
+                        setMessageExists(true);
+                        setExistingMessage(msgRes.data);
+                      });
                   } else {
-                    console.log("No hay mensaje o no tiene created_at");
                     setMessageExists(false);
                   }
                 })
@@ -259,6 +275,9 @@ export default function CreateMessage() {
   const [videoDecoration, setVideoDecoration] = useState("none");
   const animationFrameRef = useRef(null);
   const [previewMode, setPreviewMode] = useState(false);
+    // Nuevo: video subido localmente
+    const [videoFile, setVideoFile] = useState(null);
+    const [videoFileError, setVideoFileError] = useState("");
 
   // =========================================================
   // AUDIO STATES
@@ -282,7 +301,7 @@ export default function CreateMessage() {
     event: "",
     eventDate: "",
     giftType: "",
-    messageStyle: "romántico",
+    messageStyle: "",
   });
 
   const handleAIChange = (e) => {
@@ -311,7 +330,7 @@ export default function CreateMessage() {
       Género: ${aiData.recipientGender}
       Evento: ${aiData.event}
       Fecha: ${aiData.eventDate}
-      Tipo de ramo: ${aiData.giftType}
+      Tipo de regalo: ${aiData.giftType}
       Estilo del mensaje: ${aiData.messageStyle}
     `;
 
@@ -320,11 +339,11 @@ export default function CreateMessage() {
       setText(res.data.text);
       setShowAIForm(false);
     } catch (err) {
-      setShowAlert({ 
-        isOpen: true, 
-        title: "❌ Error", 
-        message: "Error generando mensaje con IA. Intenta de nuevo.", 
-        type: "danger" 
+      setShowAlert({
+        isOpen: true,
+        title: "❌ Error",
+        message: "Error generando mensaje con IA. Intenta de nuevo.",
+        type: "danger"
       });
     }
 
@@ -336,17 +355,17 @@ export default function CreateMessage() {
   // =========================================================
   const drawVideoWithDecoration = () => {
     if (!videoRef.current || !canvasRef.current) return;
-    
+
     const canvas = canvasRef.current;
     const video = videoRef.current;
     const ctx = canvas.getContext('2d');
-    
+
     canvas.width = video.videoWidth || 640;
     canvas.height = video.videoHeight || 480;
-    
+
     // Dibujar el video
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    
+
     // Aplicar decoración según selección
     if (videoDecoration === "hearts") {
       // Corazones flotantes
@@ -580,7 +599,7 @@ export default function CreateMessage() {
       }
       ctx.putImageData(imageData, 0, 0);
     }
-    
+
     animationFrameRef.current = requestAnimationFrame(drawVideoWithDecoration);
   };
 
@@ -597,7 +616,7 @@ export default function CreateMessage() {
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.play();
-        
+
         // Esperar a que el video esté listo y comenzar animación
         videoRef.current.onloadedmetadata = () => {
           if (canvasRef.current && videoDecoration !== "none") {
@@ -612,7 +631,7 @@ export default function CreateMessage() {
       const recordStream = (videoDecoration !== "none" && canvasRef.current)
         ? canvasRef.current.captureStream(30)
         : stream;
-      
+
       // Agregar audio del stream original
       if (videoDecoration !== "none" && canvasRef.current) {
         const audioTrack = stream.getAudioTracks()[0];
@@ -643,7 +662,7 @@ export default function CreateMessage() {
       recorder.start();
       setRecordingVideo(true);
       setVideoRecordingTime(0);
-      
+
       // Iniciar contador de tiempo
       videoTimerRef.current = setInterval(() => {
         setVideoRecordingTime(prev => prev + 1);
@@ -680,7 +699,7 @@ export default function CreateMessage() {
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.play();
-        
+
         videoRef.current.onloadedmetadata = () => {
           if (canvasRef.current && videoDecoration !== "none") {
             drawVideoWithDecoration();
@@ -691,11 +710,11 @@ export default function CreateMessage() {
       setPreviewMode(true);
     } catch (err) {
       console.error("Error cámara:", err);
-      setShowAlert({ 
-        isOpen: true, 
-        title: "❌ Error de cámara", 
-        message: "No se pudo acceder a la cámara. Verifica los permisos.", 
-        type: "danger" 
+      setShowAlert({
+        isOpen: true,
+        title: "❌ Error de cámara",
+        message: "No se pudo acceder a la cámara. Verifica los permisos.",
+        type: "danger"
       });
     }
   };
@@ -743,7 +762,7 @@ export default function CreateMessage() {
       recorder.start();
       setRecordingAudio(true);
       setAudioRecordingTime(0);
-      
+
       // Iniciar contador de tiempo
       audioTimerRef.current = setInterval(() => {
         setAudioRecordingTime(prev => prev + 1);
@@ -769,11 +788,11 @@ export default function CreateMessage() {
   // =========================================================
   const handleSubmit = async () => {
     if (!buyerEmail || emailError) {
-      setShowAlert({ 
-        isOpen: true, 
-        title: "⚠️ Email requerido", 
-        message: "El email es obligatorio y debe ser válido.", 
-        type: "danger" 
+      setShowAlert({
+        isOpen: true,
+        title: "⚠️ Email requerido",
+        message: "El email es obligatorio y debe ser válido.",
+        type: "danger"
       });
       return;
     }
@@ -789,6 +808,9 @@ export default function CreateMessage() {
     if (videoChunksRef.current.length > 0) {
       const videoBlob = new Blob(videoChunksRef.current, { type: "video/mp4" });
       formData.append("video", videoBlob, "mensaje.mp4");
+      // Si hay video grabado, ignorar el subido
+    } else if (videoFile) {
+      formData.append("video", videoFile, videoFile.name);
     }
 
     if (audioChunks.length > 0) {
@@ -808,11 +830,11 @@ export default function CreateMessage() {
       }
     } catch (err) {
       console.error("Error guardando mensaje:", err);
-      setShowAlert({ 
-        isOpen: true, 
-        title: "❌ Error", 
-        message: existingMessage ? "Error actualizando mensaje" : "Error enviando mensaje", 
-        type: "danger" 
+      setShowAlert({
+        isOpen: true,
+        title: "❌ Error",
+        message: existingMessage ? "Error actualizando mensaje" : "Error enviando mensaje",
+        type: "danger"
       });
     }
   };
@@ -820,13 +842,13 @@ export default function CreateMessage() {
   // =========================================================
   // JSX
   // =========================================================
-  const backgroundStyle = theme.backgroundImage 
+  const backgroundStyle = theme.backgroundImage
     ? {
-        backgroundImage: `url(${theme.backgroundImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
-      }
+      backgroundImage: `url(${theme.backgroundImage})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat'
+    }
     : {};
 
   const bgClass = theme.backgroundImage ? '' : theme.background;
@@ -902,6 +924,42 @@ export default function CreateMessage() {
         {/* SI YA EXISTE UN MENSAJE */}
         {messageExists && existingMessage && !existingMessage.expired_edit && (
           <div className="space-y-6">
+            {/* Botón para ver la respuesta si existe */}
+            {reply && (reply.text || reply.audio || reply.video) && (
+              <div className="mb-6 flex justify-end">
+                <button
+                  onClick={() => setShowReplyModal(true)}
+                  className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center gap-2"
+                >
+                  <span className="text-2xl">💌</span>Ver respuesta
+                </button>
+              </div>
+            )}
+                  {/* Modal para visualizar la respuesta */}
+                  {showReplyModal && reply && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4">
+                      <div className="bg-white p-6 sm:p-8 rounded-2xl max-w-lg w-full shadow-2xl relative animate-fade-in-up">
+                        <button
+                          onClick={() => setShowReplyModal(false)}
+                          className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-2xl font-bold"
+                          aria-label="Cerrar"
+                        >
+                          ×
+                        </button>
+                        <h2 className="text-2xl font-bold text-green-700 mb-4 flex items-center gap-2">
+                          <span className="text-3xl">💌</span>Respuesta del destinatario
+                        </h2>
+                        <p className="text-gray-800 whitespace-pre-line mb-4">{reply.text || "(Sin texto)"}</p>
+                        {reply.video && (
+                          <video src={normalizeUrl(import.meta.env.VITE_API_URL, reply.video)} controls className="w-full rounded-xl mb-4" />
+                        )}
+                        {reply.audio && (
+                          <audio src={normalizeUrl(import.meta.env.VITE_API_URL, reply.audio)} controls className="w-full mb-4" />
+                        )}
+                        <div className="text-xs text-gray-600">Enviada el {reply.created_at ? new Date(reply.created_at).toLocaleString('es-ES') : ''}</div>
+                      </div>
+                    </div>
+                  )}
             {/* Código */}
             <div className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border border-gray-200 shadow-inner">
               <label className="font-semibold text-gray-700 flex items-center gap-2 mb-3">
@@ -931,7 +989,7 @@ export default function CreateMessage() {
                     {existingMessage.video && <p className="text-sm text-green-600 mt-2">📹 Incluye video</p>}
                     {existingMessage.audio && <p className="text-sm text-blue-600 mt-1">🎤 Incluye audio</p>}
                   </div>
-                  
+
                   {/* Información de fechas y caducidad */}
                   <div className="space-y-2">
                     {/* Fecha de creación */}
@@ -939,25 +997,25 @@ export default function CreateMessage() {
                       <span className="text-lg">📅</span>
                       <div className="flex-1">
                         <strong>Fecha de creación:</strong>{' '}
-                        {new Date(existingMessage.created_at).toLocaleDateString('es-ES', { 
-                          day: 'numeric', 
-                          month: 'long', 
+                        {new Date(existingMessage.created_at).toLocaleDateString('es-ES', {
+                          day: 'numeric',
+                          month: 'long',
                           year: 'numeric',
                           hour: '2-digit',
                           minute: '2-digit'
                         })}
                       </div>
                     </div>
-                    
+
                     {/* Última modificación */}
                     {existingMessage.updated_at && existingMessage.updated_at !== existingMessage.created_at && (
                       <div className="flex items-center gap-2 text-sm bg-purple-50 border border-purple-200 rounded-lg p-3">
                         <span className="text-lg">🔄</span>
                         <div className="flex-1">
                           <strong>Última modificación:</strong>{' '}
-                          {new Date(existingMessage.updated_at).toLocaleDateString('es-ES', { 
-                            day: 'numeric', 
-                            month: 'long', 
+                          {new Date(existingMessage.updated_at).toLocaleDateString('es-ES', {
+                            day: 'numeric',
+                            month: 'long',
                             year: 'numeric',
                             hour: '2-digit',
                             minute: '2-digit'
@@ -965,7 +1023,7 @@ export default function CreateMessage() {
                         </div>
                       </div>
                     )}
-                    
+
                     {/* Tiempo restante para caducidad */}
                     <div className="flex items-center gap-2 text-sm bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                       <span className="text-lg">⏰</span>
@@ -977,7 +1035,7 @@ export default function CreateMessage() {
                           const timeLeft = expiryDate - now;
                           const daysLeft = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
                           const hoursLeft = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                          
+
                           return (
                             <>
                               <strong>Tiempo restante para editar:</strong>{' '}
@@ -993,9 +1051,9 @@ export default function CreateMessage() {
                                 <span className="text-red-700 font-bold">Menos de 1 hora</span>
                               )}
                               <div className="text-xs text-gray-600 mt-1">
-                                Caduca el {expiryDate.toLocaleDateString('es-ES', { 
-                                  day: 'numeric', 
-                                  month: 'long', 
+                                Caduca el {expiryDate.toLocaleDateString('es-ES', {
+                                  day: 'numeric',
+                                  month: 'long',
                                   year: 'numeric',
                                   hour: '2-digit',
                                   minute: '2-digit'
@@ -1012,42 +1070,45 @@ export default function CreateMessage() {
             </div>
 
             {/* Botones de acción */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-              <button
-                onClick={() => {
-                  // Cargar datos existentes para editar
-                  setText(existingMessage.text || "");
-                  setBuyerEmail(existingMessage.buyer_email || "");
-                  if (existingMessage.video) {
-                    setVideoPreview(`${import.meta.env.VITE_API_URL}${existingMessage.video}`);
-                  }
-                  if (existingMessage.audio) {
-                    setAudioPreview(`${import.meta.env.VITE_API_URL}${existingMessage.audio}`);
-                  }
-                  setMessageExists(false);
-                }}
-                className="bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-500 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3"
-              >
-                <span className="text-2xl">✏️</span>
-                Editar mensaje
-              </button>
+            {/* Solo mostrar editar/borrar si NO hay reply */}
+            {!reply && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                <button
+                  onClick={() => {
+                    // Cargar datos existentes para editar
+                    setText(existingMessage.text || "");
+                    setBuyerEmail(existingMessage.buyer_email || "");
+                    if (existingMessage.video) {
+                      setVideoPreview(`${import.meta.env.VITE_API_URL}${existingMessage.video}`);
+                    }
+                    if (existingMessage.audio) {
+                      setAudioPreview(`${import.meta.env.VITE_API_URL}${existingMessage.audio}`);
+                    }
+                    setMessageExists(false);
+                  }}
+                  className="bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-500 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3"
+                >
+                  <span className="text-2xl">✏️</span>
+                  Editar mensaje
+                </button>
 
-              <button
-                onClick={handleDeleteMessage}
-                className="bg-gradient-to-r from-red-500 via-rose-500 to-pink-500 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3"
-              >
-                <span className="text-2xl">🗑️</span>
-                Borrar mensaje
-              </button>
+                <button
+                  onClick={handleDeleteMessage}
+                  className="bg-gradient-to-r from-red-500 via-rose-500 to-pink-500 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3"
+                >
+                  <span className="text-2xl">🗑️</span>
+                  Borrar mensaje
+                </button>
 
-              <button
-                onClick={() => navigate("/")}
-                className="bg-gradient-to-r from-gray-400 to-gray-500 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3"
-              >
-                <span className="text-2xl">❌</span>
-                Cancelar
-              </button>
-            </div>
+                <button
+                  onClick={() => navigate("/")}
+                  className="bg-gradient-to-r from-gray-400 to-gray-500 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3"
+                >
+                  <span className="text-2xl">❌</span>
+                  Cancelar
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -1078,24 +1139,24 @@ export default function CreateMessage() {
                 <div className="flex-1">
                   <h3 className="text-xl font-bold text-red-800 mb-2">⚠️ Período de modificación caducado</h3>
                   <p className="text-red-700 mb-4">
-                    Este mensaje fue creado hace más de 7 días y el período de edición ha expirado. 
+                    Este mensaje fue creado hace más de 7 días y el período de edición ha expirado.
                     Por seguridad y para proteger los mensajes enviados, no es posible realizar modificaciones después de este tiempo.
                   </p>
                   <div className="bg-white rounded-xl p-4 mb-4 shadow-inner">
                     <p className="text-gray-700 text-sm mb-2"><strong>Información del mensaje:</strong></p>
                     <p className="text-gray-600">
-                      <strong>Fecha de creación:</strong> {new Date(existingMessage.created_at).toLocaleDateString('es-ES', { 
-                        day: 'numeric', 
-                        month: 'long', 
+                      <strong>Fecha de creación:</strong> {new Date(existingMessage.created_at).toLocaleDateString('es-ES', {
+                        day: 'numeric',
+                        month: 'long',
                         year: 'numeric',
                         hour: '2-digit',
                         minute: '2-digit'
                       })}
                     </p>
                     <p className="text-gray-600 mt-2">
-                      <strong>Período de edición:</strong> Hasta {new Date(new Date(existingMessage.created_at).getTime() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('es-ES', { 
-                        day: 'numeric', 
-                        month: 'long', 
+                      <strong>Período de edición:</strong> Hasta {new Date(new Date(existingMessage.created_at).getTime() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('es-ES', {
+                        day: 'numeric',
+                        month: 'long',
                         year: 'numeric'
                       })}
                     </p>
@@ -1119,7 +1180,7 @@ export default function CreateMessage() {
                 <span className="text-2xl">👁️</span>
                 Ver mensaje
               </button>
-              
+
               <button
                 onClick={() => navigate("/")}
                 className="bg-gradient-to-r from-gray-400 to-gray-500 text-white px-4 sm:px-6 md:px-8 py-3 sm:py-3.5 md:py-4 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base md:text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2 sm:gap-3"
@@ -1135,294 +1196,328 @@ export default function CreateMessage() {
         {/* Mostrar banner también cuando se edita (messageExists true) pero en edición usamos misma sección de formulario */}
         {(!messageExists || isEditMode) && !existingMessage?.expired_edit && (
           <>
-        
 
-        {/* CODE 4 INPUTS - READ ONLY SI MODO EDICION O MENSAJE EXISTE */}
-        <div className="mb-6 p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border border-gray-200 shadow-inner">
-          <label className="font-semibold text-gray-700 flex items-center gap-2 mb-3">
-            <span className="text-2xl">🎫</span>
-            Código del mensaje
-          </label>
-          <div className="mt-2 flex items-center gap-2 justify-center">
-            <input id="codePart1" value={codePart1} readOnly={true} className="w-24 p-3 border-2 border-gray-300 rounded-xl text-center uppercase bg-white cursor-not-allowed font-bold text-lg shadow-sm" placeholder="NTSF" />
-            <span className="text-gray-400 text-xl font-bold">-</span>
-            <input id="codePart2" value={codePart2} readOnly={true} className="w-16 p-3 border-2 border-gray-300 rounded-xl text-center bg-white cursor-not-allowed font-bold text-lg shadow-sm" placeholder="001" />
-            <span className="text-gray-400 text-xl font-bold">-</span>
-            <input id="codePart3" value={codePart3} readOnly={true} className="w-16 p-3 border-2 border-gray-300 rounded-xl text-center bg-white cursor-not-allowed font-bold text-lg shadow-sm" placeholder="001" />
-            <span className="text-gray-400 text-xl font-bold">-</span>
-            <input id="codePart4" value={codePart4} readOnly={true} className="w-20 p-3 border-2 border-gray-300 rounded-xl text-center uppercase bg-white cursor-not-allowed font-bold text-lg shadow-sm" placeholder="ABC" />
-          </div>
-          <p className="mt-3 text-sm text-gray-500 text-center">{isEditMode || messageExists ? '🔒 Código bloqueado en modo edición' : '🔒 Código asignado (no editable)'}</p>
-        </div>
 
-        {/* EMAIL */}
-        <label className={`font-semibold ${theme.primaryText} flex items-center gap-2 mb-2`}>
-          <span className="text-xl">📧</span>
-          Email del comprador *
-        </label>
+            {/* CODE 4 INPUTS - READ ONLY SI MODO EDICION O MENSAJE EXISTE */}
+            <div className="mb-6 p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border border-gray-200 shadow-inner">
+              <label className="font-semibold text-gray-700 flex items-center gap-2 mb-3">
+                <span className="text-2xl">🎫</span>
+                Código del mensaje
+              </label>
+              <div className="mt-2 flex items-center gap-2 justify-center">
+                <input id="codePart1" value={codePart1} readOnly={true} className="w-24 p-3 border-2 border-gray-300 rounded-xl text-center uppercase bg-white cursor-not-allowed font-bold text-lg shadow-sm" placeholder="NTSF" />
+                <span className="text-gray-400 text-xl font-bold">-</span>
+                <input id="codePart2" value={codePart2} readOnly={true} className="w-16 p-3 border-2 border-gray-300 rounded-xl text-center bg-white cursor-not-allowed font-bold text-lg shadow-sm" placeholder="001" />
+                <span className="text-gray-400 text-xl font-bold">-</span>
+                <input id="codePart3" value={codePart3} readOnly={true} className="w-16 p-3 border-2 border-gray-300 rounded-xl text-center bg-white cursor-not-allowed font-bold text-lg shadow-sm" placeholder="001" />
+                <span className="text-gray-400 text-xl font-bold">-</span>
+                <input id="codePart4" value={codePart4} readOnly={true} className="w-20 p-3 border-2 border-gray-300 rounded-xl text-center uppercase bg-white cursor-not-allowed font-bold text-lg shadow-sm" placeholder="ABC" />
+              </div>
+              <p className="mt-3 text-sm text-gray-500 text-center">{isEditMode || messageExists ? '🔒 Código bloqueado en modo edición' : '🔒 Código asignado (no editable)'}</p>
+            </div>
 
-        <input
-          type="email"
-          className={`w-full p-4 border-2 rounded-xl mb-1 transition-all duration-300 focus:scale-[1.02] focus:shadow-lg ${emailError ? "border-red-500 bg-red-50" : "border-gray-300 focus:border-rose-500"}`}
-          placeholder="tuemail@gmail.com"
-          value={buyerEmail}
-          onChange={(e) => {
-            const value = e.target.value;
-            setBuyerEmail(value);
-
-            if (!value) {
-              setEmailError("El email es obligatorio.");
-              return;
-            }
-
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-              setEmailError("Formato inválido.");
-              return;
-            }
-
-            setEmailError("");
-          }}
-        />
-
-        {emailError && (
-          <p className="text-red-500 text-sm mb-3 animate-shake">⚠️ {emailError}</p>
-        )}
-
-        {/* TEXT AREA */}
-        <div className="mb-6 p-4 sm:p-5 md:p-6 bg-gradient-to-br from-rose-50 to-pink-50 rounded-xl sm:rounded-2xl border-2 border-rose-200 shadow-md hover:shadow-lg transition-all duration-300">
-          <label className="font-semibold text-gray-800 flex items-center gap-2 mb-3 sm:mb-4 text-lg sm:text-xl">
-            <span className="text-2xl sm:text-3xl">💬</span>
-            Tu mensaje
-          </label>
-          <textarea
-            className="w-full min-h-40 sm:min-h-60 md:min-h-80 p-3 sm:p-4 md:p-6 border-2 border-gray-300 rounded-lg sm:rounded-xl transition-all duration-300 focus:border-rose-500 focus:shadow-xl focus:scale-[1.01] resize-vertical text-base sm:text-lg leading-relaxed bg-white"
-            placeholder="Escribe aquí tu mensaje especial..."
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-          />
-          <p className="text-xs sm:text-sm text-gray-600 mt-2 sm:mt-3 flex items-center gap-2">
-            <span>💡</span>
-            <span>Expresa tus sentimientos, este mensaje será único y especial</span>
-          </p>
-        </div>
-
-        {/* AI BUTTON */}
-        <button
-          type="button"
-          onClick={() => {
-            console.log("Abriendo formulario IA");
-            setShowAIForm(true);
-          }}
-          className="bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 text-white px-6 py-3 rounded-xl mb-6 font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 animate-pulse-slow w-full"
-        >
-          ✨ Crear mensaje con IA
-        </button>
-
-        {/* VIDEO BLOCK */}
-        <div className="border-2 border-gray-200 p-6 rounded-2xl mb-6 bg-gradient-to-br from-blue-50 to-purple-50 shadow-md hover:shadow-lg transition-all duration-300">
-          <h2 className="text-xl font-bold mb-4 text-gray-800 flex items-center gap-2">
-            <span className="text-2xl">🎥</span>
-            Video
-          </h2>
-
-          {/* Selector de decoración */}
-          <div className="mb-4">
-            <label className="font-semibold text-gray-700 flex items-center gap-2 mb-3">
-              <span className="text-xl">🎨</span>
-              Decoración del video
+            {/* EMAIL */}
+            <label className={`font-semibold ${theme.primaryText} flex items-center gap-2 mb-2`}>
+              <span className="text-xl">📧</span>
+              Email del comprador *
             </label>
-            <select
-              value={videoDecoration}
-              onChange={(e) => setVideoDecoration(e.target.value)}
-              className="w-full p-3 border-2 border-gray-300 rounded-xl bg-gradient-to-r from-blue-50 to-purple-50 font-semibold focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-              disabled={recordingVideo}
-            >
-              <option value="none">✨ Sin decoración</option>
-              <optgroup label="❤️ Emociones">
-                <option value="hearts">💕 Corazones flotantes</option>
-                <option value="love">💋 Amor intenso</option>
-              </optgroup>
-              <optgroup label="🎉 Celebraciones">
-                <option value="balloons">🎈 Globos festivos</option>
-                <option value="party">🥳 Fiesta total</option>
-                <option value="confetti">🎊 Confeti cayendo</option>
-              </optgroup>
-              <optgroup label="🌸 Naturaleza">
-                <option value="flowers">🌸 Flores decorativas</option>
-                <option value="butterflies">🦋 Mariposas volando</option>
-                <option value="tropical">🌺 Tropical</option>
-                <option value="snow">❄️ Nieve cayendo</option>
-              </optgroup>
-              <optgroup label="✨ Magia y Fantasía">
-                <option value="stars">⭐ Estrellas brillantes</option>
-                <option value="rainbow">🌈 Arcoíris mágico</option>
-                <option value="space">🚀 Espacio sideral</option>
-              </optgroup>
-              <optgroup label="🔥 Energía">
-                <option value="fire">🔥 Fuego y llamas</option>
-                <option value="music">🎵 Notas musicales</option>
-              </optgroup>
-              <optgroup label="🎃 Temáticas">
-                <option value="halloween">🎃 Halloween</option>
-                <option value="christmas">🎄 Navidad</option>
-              </optgroup>
-              <optgroup label="😊 Diversión">
-                <option value="food">🍕 Comida deliciosa</option>
-                <option value="animals">🐶 Animales adorables</option>
-              </optgroup>
-              <optgroup label="🖼️ Marcos">
-                <option value="frame-gold">👑 Marco dorado</option>
-                <option value="frame-rose">💖 Marco rosa</option>
-                <option value="frame-purple">💜 Marco morado</option>
-                <option value="frame-rainbow">🌈 Marco arcoíris</option>
-              </optgroup>
-              <optgroup label="🎨 Filtros">
-                <option value="vintage">📷 Vintage sepia</option>
-                <option value="blackwhite">⚫⚪ Blanco y negro</option>
-              </optgroup>
-            </select>
-            <p className="text-sm text-gray-600 mt-2 flex items-center gap-2">
-              <span>💡</span>
-              <span>Elige una decoración y haz clic en "Ver preview" para probarla</span>
-            </p>
-          </div>
 
-          {/* Contenedor del video con canvas superpuesto */}
-          <div className="relative w-full mb-3">
-            <video
-              ref={videoRef}
-              className="w-full rounded-xl bg-black"
-              autoPlay
-              muted
-              playsInline
-              style={{ display: videoDecoration === "none" ? "block" : "none" }}
-            ></video>
-            <canvas
-              ref={canvasRef}
-              className="w-full rounded-xl bg-black"
-              style={{ display: videoDecoration !== "none" ? "block" : "none" }}
-            ></canvas>
-          </div>
+            <input
+              type="email"
+              className={`w-full p-4 border-2 rounded-xl mb-1 transition-all duration-300 focus:scale-[1.02] focus:shadow-lg ${emailError ? "border-red-500 bg-red-50" : "border-gray-300 focus:border-rose-500"}`}
+              placeholder="tuemail@gmail.com"
+              value={buyerEmail}
+              onChange={(e) => {
+                const value = e.target.value;
+                setBuyerEmail(value);
 
-          {videoPreview && (
-            <video src={videoPreview} controls className="w-full rounded-xl mt-3" />
-          )}
+                if (!value) {
+                  setEmailError("El email es obligatorio.");
+                  return;
+                }
 
-          {recordingVideo && (
-            <div className="bg-red-100 border-2 border-red-400 rounded-lg sm:rounded-xl p-3 sm:p-4 mb-2 sm:mb-3 flex items-center justify-center gap-2 sm:gap-3 text-sm sm:text-base">
-              <span className="text-red-600 text-3xl animate-pulse">⏺</span>
-              <span className="text-2xl font-bold text-red-700 font-mono">{formatTime(videoRecordingTime)}</span>
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                  setEmailError("Formato inválido.");
+                  return;
+                }
+
+                setEmailError("");
+              }}
+            />
+
+            {emailError && (
+              <p className="text-red-500 text-sm mb-3 animate-shake">⚠️ {emailError}</p>
+            )}
+
+            {/* TEXT AREA */}
+            <div className="mb-6 p-4 sm:p-5 md:p-6 bg-gradient-to-br from-rose-50 to-pink-50 rounded-xl sm:rounded-2xl border-2 border-rose-200 shadow-md hover:shadow-lg transition-all duration-300">
+              <label className="font-semibold text-gray-800 flex items-center gap-2 mb-3 sm:mb-4 text-lg sm:text-xl">
+                <span className="text-2xl sm:text-3xl">💬</span>
+                Tu mensaje
+              </label>
+              <textarea
+                className="w-full min-h-40 sm:min-h-60 md:min-h-80 p-3 sm:p-4 md:p-6 border-2 border-gray-300 rounded-lg sm:rounded-xl transition-all duration-300 focus:border-rose-500 focus:shadow-xl focus:scale-[1.01] resize-vertical text-base sm:text-lg leading-relaxed bg-white"
+                placeholder="Escribe aquí tu mensaje especial..."
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+              />
+              <p className="text-xs sm:text-sm text-gray-600 mt-2 sm:mt-3 flex items-center gap-2">
+                <span>💡</span>
+                <span>Expresa tus sentimientos, este mensaje será único y especial</span>
+              </p>
             </div>
-          )}
 
-          <div className="flex gap-3">
-            {!previewMode && !recordingVideo && !videoPreview && (
-              <button
-                onClick={startPreview}
-                className="flex-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
-              >
-                👁️ Ver preview
-              </button>
-            )}
+            {/* AI BUTTON */}
+            <button
+              type="button"
+              onClick={() => {
+                console.log("Abriendo formulario IA");
+                setShowAIForm(true);
+              }}
+              className="bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 text-white px-6 py-3 rounded-xl mb-6 font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 animate-pulse-slow w-full"
+            >
+              ✨ Crear mensaje con IA
+            </button>
 
-            {previewMode && !recordingVideo && (
-              <button
-                onClick={stopPreview}
-                className="flex-1 bg-gray-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
-              >
-                ❌ Cerrar preview
-              </button>
-            )}
+            {/* VIDEO BLOCK */}
+            <div className="border-2 border-gray-200 p-6 rounded-2xl mb-6 bg-gradient-to-br from-blue-50 to-purple-50 shadow-md hover:shadow-lg transition-all duration-300">
+              <h2 className="text-xl font-bold mb-4 text-gray-800 flex items-center gap-2">
+                <span className="text-2xl">🎥</span>
+                Video
+              </h2>
 
-            {!recordingVideo && !videoPreview && (
-              <button
-                onClick={startVideoRecording}
-                className="flex-1 bg-gradient-to-r from-red-500 to-pink-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
-              >
-                🔴 Grabar Video
-              </button>
-            )}
+                {/* Nuevo: subir video local */}
+                <div className="mb-4">
+                  <label className="font-semibold text-gray-700 flex items-center gap-2 mb-2">
+                    <span className="text-xl">📁</span>
+                    Subir video desde tu dispositivo (máx 50MB)
+                  </label>
+                  <input
+                    type="file"
+                    accept="video/*"
+                    onChange={e => {
+                      const file = e.target.files[0];
+                      if (file) {
+                        if (file.size > 50 * 1024 * 1024) {
+                          setVideoFileError("El video supera el límite de 50MB.");
+                          setVideoFile(null);
+                        } else {
+                          setVideoFile(file);
+                          setVideoFileError("");
+                          setVideoPreview(URL.createObjectURL(file));
+                          videoChunksRef.current = [];
+                        }
+                      } else {
+                        setVideoFile(null);
+                        setVideoFileError("");
+                      }
+                    }}
+                    className="w-full p-2 border-2 rounded-xl"
+                    disabled={recordingVideo}
+                  />
+                  {videoFileError && <p className="text-red-500 text-sm mt-2 animate-shake">⚠️ {videoFileError}</p>}
+                  {videoFile && !videoFileError && (
+                    <p className="text-green-600 text-sm mt-2">Archivo seleccionado: {videoFile.name} ({(videoFile.size/1024/1024).toFixed(1)} MB)</p>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">Si grabas un video, se usará el grabado en vez del subido.</p>
+                </div>
+              {/* Selector de decoración */}
+              <div className="mb-4">
+                <label className="font-semibold text-gray-700 flex items-center gap-2 mb-3">
+                  <span className="text-xl">🎨</span>
+                  Decoración del video
+                </label>
+                <select
+                  value={videoDecoration}
+                  onChange={(e) => setVideoDecoration(e.target.value)}
+                  className="w-full p-3 border-2 border-gray-300 rounded-xl bg-gradient-to-r from-blue-50 to-purple-50 font-semibold focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                  disabled={recordingVideo}
+                >
+                  <option value="none">✨ Sin decoración</option>
+                  <optgroup label="❤️ Emociones">
+                    <option value="hearts">💕 Corazones flotantes</option>
+                    <option value="love">💋 Amor intenso</option>
+                  </optgroup>
+                  <optgroup label="🎉 Celebraciones">
+                    <option value="balloons">🎈 Globos festivos</option>
+                    <option value="party">🥳 Fiesta total</option>
+                    <option value="confetti">🎊 Confeti cayendo</option>
+                  </optgroup>
+                  <optgroup label="🌸 Naturaleza">
+                    <option value="flowers">🌸 Flores decorativas</option>
+                    <option value="butterflies">🦋 Mariposas volando</option>
+                    <option value="tropical">🌺 Tropical</option>
+                    <option value="snow">❄️ Nieve cayendo</option>
+                  </optgroup>
+                  <optgroup label="✨ Magia y Fantasía">
+                    <option value="stars">⭐ Estrellas brillantes</option>
+                    <option value="rainbow">🌈 Arcoíris mágico</option>
+                    <option value="space">🚀 Espacio sideral</option>
+                  </optgroup>
+                  <optgroup label="🔥 Energía">
+                    <option value="fire">🔥 Fuego y llamas</option>
+                    <option value="music">🎵 Notas musicales</option>
+                  </optgroup>
+                  <optgroup label="🎃 Temáticas">
+                    <option value="halloween">🎃 Halloween</option>
+                    <option value="christmas">🎄 Navidad</option>
+                  </optgroup>
+                  <optgroup label="😊 Diversión">
+                    <option value="food">🍕 Comida deliciosa</option>
+                    <option value="animals">🐶 Animales adorables</option>
+                  </optgroup>
+                  <optgroup label="🖼️ Marcos">
+                    <option value="frame-gold">👑 Marco dorado</option>
+                    <option value="frame-rose">💖 Marco rosa</option>
+                    <option value="frame-purple">💜 Marco morado</option>
+                    <option value="frame-rainbow">🌈 Marco arcoíris</option>
+                  </optgroup>
+                  <optgroup label="🎨 Filtros">
+                    <option value="vintage">📷 Vintage sepia</option>
+                    <option value="blackwhite">⚫⚪ Blanco y negro</option>
+                  </optgroup>
+                </select>
+                <p className="text-sm text-gray-600 mt-2 flex items-center gap-2">
+                  <span>💡</span>
+                  <span>Elige una decoración y haz clic en "Ver preview" para probarla</span>
+                </p>
+              </div>
 
-            {recordingVideo && (
-              <button
-                onClick={stopVideoRecording}
-                className="w-full bg-gray-700 text-white px-6 py-3 rounded-xl font-semibold animate-pulse shadow-lg"
-              >
-                ⏹ Detener grabación
-              </button>
-            )}
+              {/* Contenedor del video con canvas superpuesto */}
+              <div className="relative w-full mb-3">
+                <video
+                  ref={videoRef}
+                  className="w-full rounded-xl bg-black"
+                  autoPlay
+                  muted
+                  playsInline
+                  style={{ display: videoDecoration === "none" ? "block" : "none" }}
+                ></video>
+                <canvas
+                  ref={canvasRef}
+                  className="w-full rounded-xl bg-black"
+                  style={{ display: videoDecoration !== "none" ? "block" : "none" }}
+                ></canvas>
+              </div>
 
-            {videoPreview && !recordingVideo && (
-              <button
-                onClick={() => {
-                  setVideoPreview(null);
-                  videoChunksRef.current = [];
-                }}
-                className="flex-1 bg-orange-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
-              >
-                🔄 Grabar de nuevo
-              </button>
-            )}
-          </div>
-        </div>
+              {videoPreview && (
+                <video src={videoPreview} controls className="w-full rounded-xl mt-3" />
+              )}
 
-        {/* AUDIO BLOCK */}
-        <div className="border-2 border-gray-200 p-6 rounded-2xl mb-6 bg-gradient-to-br from-green-50 to-teal-50 shadow-md hover:shadow-lg transition-all duration-300">
-          <h2 className="text-xl font-bold mb-4 text-gray-800 flex items-center gap-2">
-            <span className="text-2xl">🎤</span>
-            Audio
-          </h2>
+              {recordingVideo && (
+                <div className="bg-red-100 border-2 border-red-400 rounded-lg sm:rounded-xl p-3 sm:p-4 mb-2 sm:mb-3 flex items-center justify-center gap-2 sm:gap-3 text-sm sm:text-base">
+                  <span className="text-red-600 text-3xl animate-pulse">⏺</span>
+                  <span className="text-2xl font-bold text-red-700 font-mono">{formatTime(videoRecordingTime)}</span>
+                </div>
+              )}
 
-          {audioPreview && (
-            <audio controls src={audioPreview} className="w-full mb-3"></audio>
-          )}
+              <div className="flex gap-3">
+                {!previewMode && !recordingVideo && !videoPreview && (
+                  <button
+                    onClick={startPreview}
+                    className="flex-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+                  >
+                    👁️ Ver preview
+                  </button>
+                )}
 
-          {recordingAudio && (
-            <div className="bg-blue-100 border-2 border-blue-400 rounded-xl p-4 mb-3 flex items-center justify-center gap-3">
-              <span className="text-blue-600 text-3xl animate-pulse">⏺</span>
-              <span className="text-2xl font-bold text-blue-700 font-mono">{formatTime(audioRecordingTime)}</span>
+                {previewMode && !recordingVideo && (
+                  <button
+                    onClick={stopPreview}
+                    className="flex-1 bg-gray-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+                  >
+                    ❌ Cerrar preview
+                  </button>
+                )}
+
+                {!recordingVideo && !videoPreview && (
+                  <button
+                    onClick={startVideoRecording}
+                    className="flex-1 bg-gradient-to-r from-red-500 to-pink-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+                  >
+                    🔴 Grabar Video
+                  </button>
+                )}
+
+                {recordingVideo && (
+                  <button
+                    onClick={stopVideoRecording}
+                    className="w-full bg-gray-700 text-white px-6 py-3 rounded-xl font-semibold animate-pulse shadow-lg"
+                  >
+                    ⏹ Detener grabación
+                  </button>
+                )}
+
+                {videoPreview && !recordingVideo && (
+                  <button
+                    onClick={() => {
+                      setVideoPreview(null);
+                      videoChunksRef.current = [];
+                    }}
+                    className="flex-1 bg-orange-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+                  >
+                    🔄 Grabar de nuevo
+                  </button>
+                )}
+              </div>
             </div>
-          )}
 
-          {!recordingAudio ? (
-            <button
-              onClick={startAudioRecording}
-              className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
-            >
-              🎙️ Grabar Audio
-            </button>
-          ) : (
-            <button
-              onClick={stopAudioRecording}
-              className="bg-gray-700 text-white px-6 py-3 rounded-xl font-semibold animate-pulse shadow-lg"
-            >
-              ⏹ Detener
-            </button>
-          )}
-        </div>
+            {/* AUDIO BLOCK */}
+            <div className="border-2 border-gray-200 p-6 rounded-2xl mb-6 bg-gradient-to-br from-green-50 to-teal-50 shadow-md hover:shadow-lg transition-all duration-300">
+              <h2 className="text-xl font-bold mb-4 text-gray-800 flex items-center gap-2">
+                <span className="text-2xl">🎤</span>
+                Audio
+              </h2>
 
-        {/* SUBMIT */}
-        <div className="flex gap-4 mt-8">
-          <button
-            type="button"
-            onClick={() => navigate("/")}
-            className="flex-1 py-4 rounded-xl text-lg font-semibold bg-gray-200 hover:bg-gray-300 text-gray-800 transition-all duration-300 hover:scale-105 shadow-md hover:shadow-lg"
-          >
-            ← Cancelar
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={!buyerEmail || emailError}
-            className={`flex-1 py-3 sm:py-3.5 md:py-4 rounded-lg sm:rounded-xl text-sm sm:text-base md:text-lg font-bold transition-all duration-300 shadow-lg ${
-              !buyerEmail || emailError
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 hover:from-green-600 hover:via-emerald-600 hover:to-teal-600 text-white hover:scale-105 hover:shadow-xl"
-            }`}
-          >
-            ✨ Guardar Mensaje →
-          </button>
-        </div>
-        </>
+              {audioPreview && (
+                <audio controls src={audioPreview} className="w-full mb-3"></audio>
+              )}
+
+              {recordingAudio && (
+                <div className="bg-blue-100 border-2 border-blue-400 rounded-xl p-4 mb-3 flex items-center justify-center gap-3">
+                  <span className="text-blue-600 text-3xl animate-pulse">⏺</span>
+                  <span className="text-2xl font-bold text-blue-700 font-mono">{formatTime(audioRecordingTime)}</span>
+                </div>
+              )}
+
+              {!recordingAudio ? (
+                <button
+                  onClick={startAudioRecording}
+                  className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+                >
+                  🎙️ Grabar Audio
+                </button>
+              ) : (
+                <button
+                  onClick={stopAudioRecording}
+                  className="bg-gray-700 text-white px-6 py-3 rounded-xl font-semibold animate-pulse shadow-lg"
+                >
+                  ⏹ Detener
+                </button>
+              )}
+            </div>
+
+            {/* SUBMIT */}
+            <div className="flex gap-4 mt-8">
+              <button
+                type="button"
+                onClick={() => navigate("/")}
+                className="flex-1 py-4 rounded-xl text-lg font-semibold bg-gray-200 hover:bg-gray-300 text-gray-800 transition-all duration-300 hover:scale-105 shadow-md hover:shadow-lg"
+              >
+                ← Cancelar
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={!buyerEmail || emailError}
+                className={`flex-1 py-3 sm:py-3.5 md:py-4 rounded-lg sm:rounded-xl text-sm sm:text-base md:text-lg font-bold transition-all duration-300 shadow-lg ${!buyerEmail || emailError
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 hover:from-green-600 hover:via-emerald-600 hover:to-teal-600 text-white hover:scale-105 hover:shadow-xl"
+                  }`}
+              >
+                ✨ Guardar Mensaje →
+              </button>
+            </div>
+          </>
         )}
       </div>
 
@@ -1516,6 +1611,7 @@ export default function CreateMessage() {
               <option value="bautizo">Bautizo</option>
               <option value="primera comunión">Primera Comunión</option>
               <option value="jubilación">Jubilación</option>
+                <option value="Ocasión Especial">Ocasión Especial</option>
             </select>
 
             <input
@@ -1525,19 +1621,13 @@ export default function CreateMessage() {
               onChange={handleAIChange}
             />
 
-            <select
+            <input
               name="giftType"
+              type="text"
               className="w-full p-3 border rounded mb-3"
+              placeholder="Tipo de regalo (opcional)"
               onChange={handleAIChange}
-            >
-              <option value="">Tipo de ramo</option>
-              <option value="bombones">Bombones</option>
-              <option value="caramelos">Caramelos</option>
-              <option value="jabones">Jabones</option>
-              <option value="crochet">Crochet</option>
-              <option value="cervezas">Cervezas</option>
-              <option value="cava">Cava</option>
-            </select>
+            />
 
             <select
               name="messageStyle"
@@ -1566,11 +1656,10 @@ export default function CreateMessage() {
             <button
               onClick={generateAIText}
               disabled={aiLoading}
-              className={`w-full py-2 rounded-xl mb-3 text-white ${
-                aiLoading
+              className={`w-full py-2 rounded-xl mb-3 text-white ${aiLoading
                   ? "bg-purple-300"
                   : "bg-purple-600 hover:bg-purple-700"
-              }`}
+                }`}
             >
               {aiLoading ? "Generando..." : "💜 Generar mensaje"}
             </button>

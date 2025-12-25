@@ -39,17 +39,7 @@ export default function ReplySent() {
           ⬅ Volver al mensaje
         </Link>
 
-        {/* Música ambiental */}
-        <button
-          onClick={() => {
-            setPlay(!play);
-            if (play) audioRef.current.pause();
-            else audioRef.current.play();
-          }}
-          className="mt-4 bg-purple-500 text-white w-full p-2 rounded-xl shadow hover:bg-purple-600"
-        >
-          {play ? "🔇 Detener música" : "🎶 Reproducir música"}
-        </button>
+       
 
       </div>
 
