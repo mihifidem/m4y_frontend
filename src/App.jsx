@@ -25,10 +25,12 @@ import ComoFunciona from "./pages/ComoFunciona.jsx";
 import VentajasNFCQR from "./pages/VentajasNFCQR.jsx";
 import PreguntasFrecuentes from "./pages/PreguntasFrecuentes.jsx";
 import ContactoSoporte from "./pages/ContactoSoporte.jsx";
+import ContactoComercial from "./pages/ContactoComercial.jsx";
 import PoliticaPrivacidad from "./pages/PoliticaPrivacidad.jsx";
 import TerminosServicio from "./pages/TerminosServicio.jsx";
 
-import ContactoComercial from "./pages/ContactoComercial.jsx";
+
+import ProveedorInfo from "./pages/ProveedorInfo.jsx";
 
 function App() {
   return (
@@ -82,15 +84,17 @@ function App() {
             <Route path="/contacto-soporte" element={<ContactoSoporte />} />
             {/* Contacto comercial */}
             <Route path="/contacto-comercial" element={<ContactoComercial />} />
-            {/* Mensaje enviado */}
-            <Route path="/message-sent/:code" element={<MessageSent />} />
-            {/* Ver mensaje (destinatario) */}
-            <Route path="/view-message" element={<ViewMessageForm />} />
-            <Route path="/view/:code" element={<ViewMessage />} />
-            {/* Responder mensaje (destinatario) */}
-            <Route path="/reply/:code" element={<ReplyMessage />} />
-            {/* Confirmación de respuesta enviada */}
-            <Route path="/reply-sent/:code" element={<ReplySent />} />
+              {/* Página de perfil del proveedor (comercio) */}
+              <Route path="/proveedor-info" element={<ProveedorInfo />} />
+              {/* Mensaje enviado */}
+              <Route path="/message-sent/:code" element={<MessageSent />} />
+              {/* Ver mensaje (destinatario) */}
+              <Route path="/view-message" element={<ViewMessageForm />} />
+              <Route path="/view/:code" element={<ViewMessage />} />
+              {/* Responder mensaje (destinatario) */}
+              <Route path="/reply/:code" element={<ReplyMessage />} />
+              {/* Confirmación de respuesta enviada */}
+              <Route path="/reply-sent/:code" element={<ReplySent />} />
             {/* 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>

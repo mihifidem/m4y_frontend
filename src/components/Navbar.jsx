@@ -2,11 +2,10 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useContext, useState } from "react";
 import { AuthContext } from "../auth/AuthContext";
 
-
 export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useContext(AuthContext);
+  const { user, proveedor, logout } = useContext(AuthContext);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const isActive = (path) => {
@@ -24,274 +23,158 @@ export default function Navbar() {
     <>
       <nav className="w-full bg-white border-b border-gray-300 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-2 py-2 flex items-center justify-between">
-          {/* Logo con animación */}
-          <Link 
-            to="view-message/" 
+          {/* LOGO */}
+          <Link
+            to="/view-message"
             className="flex items-center gap-2 font-bold text-2xl text-gray-800 group relative"
           >
             <span className="relative inline-block">
               <span className="text-4xl logo-anim">🎁</span>
-              <span className="absolute -top-2 -right-2 w-6 h-6 bg-red-600 text-white text-xs font-bold rounded-full flex items-center justify-center shadow z-10 border-2 border-white transition-all duration-300 badge-heart group-hover:badge-heart-anim">
+              <span className="badge-heart absolute -top-2 -right-2 w-6 h-6 bg-red-600 text-white text-xs font-bold rounded-full flex items-center justify-center shadow border-2 border-white">
                 <span className="badge-heart-content">1</span>
               </span>
-              {/* Corazones animados */}
-              <span className="absolute left-1/2 top-1/2 pointer-events-none select-none hearts-container">
-                <span className="heart absolute opacity-0 group-hover:heart-anim" style={{left: '-18px', top: '-30px'}}>💖</span>
-                <span className="heart absolute opacity-0 group-hover:heart-anim2" style={{left: '10px', top: '-38px'}}>💗</span>
-                <span className="heart absolute opacity-0 group-hover:heart-anim3" style={{left: '-8px', top: '-50px'}}>💓</span>
+              <span className="absolute left-1/2 top-1/2 pointer-events-none hearts-container">
+                <span className="heart heart-anim" style={{ left: "-18px", top: "-30px" }}>💖</span>
+                <span className="heart heart-anim2" style={{ left: "10px", top: "-38px" }}>💗</span>
+                <span className="heart heart-anim3" style={{ left: "-8px", top: "-50px" }}>💓</span>
               </span>
             </span>
-            <span className="hidden sm:inline logo-text-anim group-hover:logo-text-anim-hover">Mensaje para Ti</span>
+            <span className="hidden sm:inline logo-text-anim">Mensaje para Ti</span>
           </Link>
 
-          {/* Enlaces principales - ocultos en móvil, visibles en sm+ */}
+          {/* NAV DESKTOP */}
           <div className="hidden sm:flex items-center gap-2">
-            <Link
-            to="/home-info"
-            className="flex items-center gap-2 px-6 py-3 rounded-lg text-xl font-bold text-gray-800 bg-gray-200 hover:bg-gray-300 focus:outline-none"
-          >
-            <span className="text-2xl">🏠</span>
-            Inicio
-          </Link>
-          <Link
-            to="/"
-            className="flex items-center gap-2 px-6 py-3 rounded-lg text-xl font-bold text-gray-800 bg-gray-200 hover:bg-gray-300 focus:outline-none"
-          >
-            <span className="text-2xl">✉️</span>
-            Crear
-          </Link>
-          <Link
-            to="/view-message"
-            className="flex items-center gap-2 px-6 py-3 rounded-lg text-xl font-bold text-gray-800 bg-gray-200 hover:bg-gray-300 focus:outline-none"
-          >
-            <span className="text-2xl">👁️</span>
-            Ver
-          </Link>
-          {user && user.is_staff ? (
-            <Link
-              to="/admin-codes"
-              className="flex items-center gap-2 px-6 py-3 rounded-lg text-xl font-bold text-gray-800 bg-gray-200 hover:bg-gray-300 focus:outline-none"
-            >
-              <span className="text-2xl">🛠️</span>
-              Gestión
+            <Link to="/home-info" className="px-4 py-2 rounded-lg font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition flex items-center gap-2 shadow-sm">
+              <span className="text-xl">🏠</span> Inicio
             </Link>
-          ) : null}
-          <Link
-            to="/login"
-            className="flex items-center gap-2 px-6 py-3 rounded-lg text-xl font-bold text-gray-800 bg-gray-200 hover:bg-gray-300 focus:outline-none"
-          >
-            <span className="text-2xl">🏪</span>
-            Comercios
-          </Link>
-        </div>
-
-        {/* Menú hamburguesa solo en móvil */}
-        <div className="flex sm:hidden items-center">
-          <button
-            className="p-3 rounded-md bg-gray-200 text-3xl text-gray-800 focus:outline-none"
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Abrir menú"
-          >
-            ☰
-          </button>
-          {/* Panel lateral */}
-          {menuOpen && (
-            <div className="fixed inset-0 z-50 bg-black bg-opacity-60 flex justify-end">
-              <div className="w-72 bg-white h-full p-4 flex flex-col gap-4 overflow-y-auto">
-                <button className="self-end mb-2 text-3xl text-gray-800" onClick={() => setMenuOpen(false)} aria-label="Cerrar menú">
-                  ×
-                </button>
-                <Link to="/home-info" className="flex items-center gap-3 px-4 py-4 rounded-lg text-xl font-bold text-gray-800 bg-gray-200 hover:bg-gray-300" onClick={() => setMenuOpen(false)}>
-                  <span className="text-2xl">🏠</span> Inicio
-                </Link>
-                <Link to="/" className="flex items-center gap-3 px-4 py-4 rounded-lg text-xl font-bold text-gray-800 bg-gray-200 hover:bg-gray-300" onClick={() => setMenuOpen(false)}>
-                  <span className="text-2xl">✉️</span> Crear
-                </Link>
-                <Link to="/view-message" className="flex items-center gap-3 px-4 py-4 rounded-lg text-xl font-bold text-gray-800 bg-gray-200 hover:bg-gray-300" onClick={() => setMenuOpen(false)}>
-                  <span className="text-2xl">👁️</span> Ver
-                </Link>
-                {user && user.is_staff ? (
-                  <Link to="/admin-codes" className="flex items-center gap-3 px-4 py-4 rounded-lg text-xl font-bold text-gray-800 bg-gray-200 hover:bg-gray-300" onClick={() => setMenuOpen(false)}>
-                    <span className="text-2xl">🛠️</span> Gestión
+            <Link to="/" className="px-4 py-2 rounded-lg font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition flex items-center gap-2 shadow-sm">
+              <span className="text-xl">✉️</span> Crear
+            </Link>
+            <Link to="/view-message" className="px-4 py-2 rounded-lg font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition flex items-center gap-2 shadow-sm">
+              <span className="text-xl">👁️</span> Ver
+            </Link>
+            {user?.is_staff && (
+              <Link to="/admin-codes" className="px-4 py-2 rounded-lg font-semibold text-gray-700 bg-yellow-100 hover:bg-yellow-200 transition flex items-center gap-2 shadow-sm">
+                <span className="text-xl">🛠️</span> Gestión
+              </Link>
+            )}
+            {user ? (
+              <>
+                {user && (
+                  <Link to="/dashboard" className="px-4 py-2 rounded-lg font-semibold text-gray-700 bg-green-100 hover:bg-green-200 transition flex items-center gap-2 shadow-sm">
+                    <span className="text-xl">📊</span> Panel
                   </Link>
-                ) : null}
-                <Link to="/login" className="flex items-center gap-3 px-4 py-4 rounded-lg text-xl font-bold text-gray-800 bg-gray-200 hover:bg-gray-300" onClick={() => setMenuOpen(false)}>
-                  <span className="text-2xl">🏪</span> Comercios
-                </Link>
-              </div>
-            </div>
-          )}
-        </div>
+                )}
+                {proveedor && (
+                  <Link to="/proveedor-info" className="px-4 py-2 rounded-lg font-semibold text-gray-700 bg-blue-100 hover:bg-blue-200 transition flex items-center gap-2 shadow-sm">
+                    <span className="text-xl">👤</span> {proveedor.comercial_name || proveedor.name}
+                  </Link>
+                )}
+                <button
+                  onClick={handleLogout}
+                  className="px-4 py-2 rounded-lg font-semibold text-white bg-rose-600 hover:bg-rose-700 transition flex items-center gap-2 shadow-sm"
+                >
+                  <span className="text-xl">🚪</span> Logout
+                </button>
+              </>
+            ) : (
+              <Link to="/login" className="px-4 py-2 rounded-lg font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition flex items-center gap-2 shadow-sm">
+                <span className="text-xl">🏪</span> Comercios
+              </Link>
+            )}
+          </div>
 
-      
-      </div>
-      {/* Botón flotante FAQs en la esquina inferior izquierda */}
-      {/* Botón FAQs eliminado del Navbar */}
-      
-      {/* Animaciones sorprendentes */}
+          {/* BOTÓN MÓVIL */}
+          <div className="flex sm:hidden">
+            <button
+              onClick={() => setMenuOpen(true)}
+              className="p-3 text-3xl bg-gray-200 rounded-md"
+            >
+              ☰
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* PANEL LATERAL */}
+      {menuOpen && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-60 flex justify-end">
+          <div className="w-72 bg-white h-full p-4 flex flex-col gap-3">
+            <button
+              className="self-end text-3xl"
+              onClick={() => setMenuOpen(false)}
+            >
+              ×
+            </button>
+            <Link to="/home-info" onClick={() => setMenuOpen(false)} className="px-4 py-3 rounded-lg font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition flex items-center gap-2 shadow-sm">
+              <span className="text-xl">🏠</span> Inicio
+            </Link>
+            <Link to="/" onClick={() => setMenuOpen(false)} className="px-4 py-3 rounded-lg font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition flex items-center gap-2 shadow-sm">
+              <span className="text-xl">✉️</span> Crear
+            </Link>
+            <Link to="/view-message" onClick={() => setMenuOpen(false)} className="px-4 py-3 rounded-lg font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition flex items-center gap-2 shadow-sm">
+              <span className="text-xl">👁️</span> Ver
+            </Link>
+            {user?.is_staff && (
+              <Link to="/admin-codes" onClick={() => setMenuOpen(false)} className="px-4 py-3 rounded-lg font-semibold text-gray-700 bg-yellow-100 hover:bg-yellow-200 transition flex items-center gap-2 shadow-sm">
+                <span className="text-xl">🛠️</span> Gestión
+              </Link>
+            )}
+            {user ? (
+              <>
+                {user && (
+                  <Link to="/dashboard" onClick={() => setMenuOpen(false)} className="px-4 py-3 rounded-lg font-semibold text-gray-700 bg-green-100 hover:bg-green-200 transition flex items-center gap-2 shadow-sm">
+                    <span className="text-xl">📊</span> Panel
+                  </Link>
+                )}
+                {proveedor && (
+                  <Link to="/proveedor-info" onClick={() => setMenuOpen(false)} className="px-4 py-3 rounded-lg font-semibold text-gray-700 bg-blue-100 hover:bg-blue-200 transition flex items-center gap-2 shadow-sm">
+                    <span className="text-xl">👤</span> {proveedor.comercial_name || proveedor.name}
+                  </Link>
+                )}
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setMenuOpen(false);
+                  }}
+                  className="px-4 py-3 rounded-lg font-semibold text-white bg-rose-600 hover:bg-rose-700 transition flex items-center gap-2 shadow-sm"
+                >
+                  <span className="text-xl">🚪</span> Logout
+                </button>
+              </>
+            ) : (
+              <Link to="/login" onClick={() => setMenuOpen(false)} className="px-4 py-3 rounded-lg font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition flex items-center gap-2 shadow-sm">
+                <span className="text-xl">🏪</span> Comercios
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ESTILOS */}
       <style>{`
-        @keyframes heartBurst {
-          0% { transform: scale(0) rotate(0deg); opacity: 0; }
-          50% { transform: scale(1.3) rotate(180deg); opacity: 1; }
-          100% { transform: scale(1) rotate(360deg); opacity: 1; }
+        .logo-anim { display:inline-block; }
+        .logo-text-anim { display:inline-block; }
+        .group:hover .logo-anim { animation: logo-bounce-spin .7s both; }
+        .group:hover .logo-text-anim { animation: logo-text-move .7s both; }
+        .heart { position:absolute; opacity:0; font-size:1.5rem; }
+        .group:hover .heart-anim { animation: heart-float1 1.1s; opacity:1; }
+        .group:hover .heart-anim2 { animation: heart-float2 1.1s .1s; opacity:1; }
+        .group:hover .heart-anim3 { animation: heart-float3 1.1s .2s; opacity:1; }
+        @keyframes logo-bounce-spin {
+          0%{transform:scale(1)}
+          50%{transform:scale(1.15) rotate(10deg)}
+          100%{transform:scale(1)}
         }
-        
-        @keyframes heartPulse {
-          0%, 100% { transform: scale(1); }
-          25% { transform: scale(1.2); }
-          50% { transform: scale(1.1); }
-          75% { transform: scale(1.15); }
+        @keyframes logo-text-move {
+          0%{transform:translateY(0)}
+          50%{transform:translateY(-6px)}
+          100%{transform:translateY(0)}
         }
-        
-        @keyframes particle1 {
-          0% { transform: translate(0, 0) scale(0) rotate(0deg); opacity: 0; }
-          20% { opacity: 1; }
-          100% { transform: translate(-35px, -40px) scale(1.5) rotate(360deg); opacity: 0; }
-        }
-        @keyframes particle2 {
-          0% { transform: translate(0, 0) scale(0) rotate(0deg); opacity: 0; }
-          20% { opacity: 1; }
-          100% { transform: translate(40px, -35px) scale(1.5) rotate(-360deg); opacity: 0; }
-        }
-        @keyframes particle3 {
-          0% { transform: translate(0, 0) scale(0) rotate(0deg); opacity: 0; }
-          20% { opacity: 1; }
-          100% { transform: translate(-45px, 10px) scale(1.5) rotate(540deg); opacity: 0; }
-        }
-        @keyframes particle4 {
-          0% { transform: translate(0, 0) scale(0) rotate(0deg); opacity: 0; }
-          20% { opacity: 1; }
-          100% { transform: translate(45px, 15px) scale(1.5) rotate(-540deg); opacity: 0; }
-        }
-        @keyframes particle5 {
-          0% { transform: translate(0, 0) scale(0) rotate(0deg); opacity: 0; }
-          20% { opacity: 1; }
-          100% { transform: translate(-25px, 45px) scale(1.5) rotate(720deg); opacity: 0; }
-        }
-        @keyframes particle6 {
-          0% { transform: translate(0, 0) scale(0) rotate(0deg); opacity: 0; }
-          20% { opacity: 1; }
-          100% { transform: translate(30px, 40px) scale(1.5) rotate(-720deg); opacity: 0; }
-        }
-        @keyframes particle7 {
-          0% { transform: translate(0, 0) scale(0) rotate(0deg); opacity: 0; }
-          20% { opacity: 1; }
-          100% { transform: translate(-15px, -50px) scale(1.5) rotate(180deg); opacity: 0; }
-        }
-        @keyframes particle8 {
-          0% { transform: translate(0, 0) scale(0) rotate(0deg); opacity: 0; }
-          20% { opacity: 1; }
-          100% { transform: translate(20px, -45px) scale(1.5) rotate(-180deg); opacity: 0; }
-        }
-        
-        .animate-heartBurst { animation: heartBurst 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards; }
-        .animate-heartPulse { animation: heartPulse 1s ease-in-out infinite; }
-        .animate-particle1 { animation: particle1 1s ease-out forwards; }
-        .animate-particle2 { animation: particle2 1s ease-out forwards; }
-        .animate-particle3 { animation: particle3 1s ease-out forwards; }
-        .animate-particle4 { animation: particle4 1s ease-out forwards; }
-        .animate-particle5 { animation: particle5 1s ease-out forwards; }
-        .animate-particle6 { animation: particle6 1s ease-out forwards; }
-        .animate-particle7 { animation: particle7 1s ease-out forwards; }
-        .animate-particle8 { animation: particle8 1s ease-out forwards; }
+        @keyframes heart-float1 { to { transform: translateY(-40px); opacity:0 } }
+        @keyframes heart-float2 { to { transform: translateY(-50px); opacity:0 } }
+        @keyframes heart-float3 { to { transform: translateY(-60px); opacity:0 } }
       `}</style>
-    </nav>
-    <style>{`
-      @keyframes logo-bounce-spin {
-        0% { transform: scale(1) rotate(0deg); }
-        20% { transform: scale(1.15) rotate(12deg); }
-        40% { transform: scale(0.95) rotate(-8deg); }
-        60% { transform: scale(1.1) rotate(8deg); }
-        80% { transform: scale(1.05) rotate(-4deg); }
-        100% { transform: scale(1) rotate(0deg); }
-      }
-      @keyframes logo-text-move {
-        0% { transform: scale(1) translateY(0); }
-        30% { transform: scale(1.08) translateY(-4px); }
-        60% { transform: scale(1.12) translateY(-8px); }
-        100% { transform: scale(1) translateY(0); }
-      }
-      @keyframes heart-float1 {
-        0% { opacity: 0; transform: translateY(0) scale(0.7) rotate(-10deg); }
-        10% { opacity: 1; }
-        80% { opacity: 1; }
-        100% { opacity: 0; transform: translateY(-40px) scale(1.2) rotate(10deg); }
-      }
-      @keyframes heart-float2 {
-        0% { opacity: 0; transform: translateY(0) scale(0.7) rotate(10deg); }
-        10% { opacity: 1; }
-        80% { opacity: 1; }
-        100% { opacity: 0; transform: translateY(-50px) scale(1.2) rotate(-10deg); }
-      }
-      @keyframes heart-float3 {
-        0% { opacity: 0; transform: translateY(0) scale(0.7) rotate(0deg); }
-        10% { opacity: 1; }
-        80% { opacity: 1; }
-        100% { opacity: 0; transform: translateY(-60px) scale(1.2) rotate(0deg); }
-      }
-      .logo-anim {
-        display: inline-block;
-        transition: transform 0.3s;
-      }
-      .logo-text-anim {
-        display: inline-block;
-        transition: transform 0.3s;
-      }
-      .group:hover .logo-anim {
-        animation: logo-bounce-spin 0.7s cubic-bezier(.4,0,.2,1) both;
-      }
-      .group:hover .logo-text-anim {
-        animation: logo-text-move 0.7s cubic-bezier(.4,0,.2,1) both;
-      }
-      .heart {
-        font-size: 1.5rem;
-        pointer-events: none;
-        opacity: 0;
-      }
-      .group:hover .heart-anim {
-        animation: heart-float1 1.1s ease-in-out;
-        opacity: 1;
-      }
-      .group:hover .heart-anim2 {
-        animation: heart-float2 1.1s ease-in-out 0.1s;
-        opacity: 1;
-      }
-      .group:hover .heart-anim3 {
-        animation: heart-float3 1.1s ease-in-out 0.2s;
-        opacity: 1;
-      }
-      .badge-heart-content {
-        display: inline-block;
-        transition: opacity 0.2s, transform 0.3s;
-      }
-      .group:hover .badge-heart-content {
-        opacity: 0;
-        transform: scale(0.5) translateY(-8px);
-      }
-      .badge-heart::after {
-        content: '';
-        display: none;
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%) scale(0.7);
-        font-size: 1.1rem;
-        color: #fff;
-        transition: opacity 0.2s, transform 0.3s;
-      }
-      .group:hover .badge-heart::after {
-        content: '💖';
-        display: block;
-        opacity: 1;
-        animation: badge-heart-pop 0.7s cubic-bezier(.4,0,.2,1);
-      }
-      @keyframes badge-heart-pop {
-        0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5) rotate(-10deg); }
-        40% { opacity: 1; transform: translate(-50%, -70%) scale(1.2) rotate(10deg); }
-        70% { opacity: 1; transform: translate(-50%, -90%) scale(1.1) rotate(-8deg); }
-        100% { opacity: 0; transform: translate(-50%, -120%) scale(0.7) rotate(0deg); }
-      }
-    `}</style>
-  </>
-);
+    </>
+  );
 }

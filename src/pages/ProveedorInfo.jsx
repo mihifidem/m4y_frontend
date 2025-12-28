@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../auth/AuthContext";
 import api from "../api/axios";
 
 export default function ProveedorInfo() {
   const navigate = useNavigate();
-  const [proveedor, setProveedor] = useState(null);
+  const { proveedor: proveedorContext } = useContext(AuthContext);
+  const [proveedor, setProveedor] = useState(proveedorContext || null);
   const [prefix, setPrefix] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -60,37 +62,39 @@ export default function ProveedorInfo() {
       )}
 
       <div className="relative z-10 container mx-auto px-4 py-12">
-        {/* Buscador de proveedor */}
-        <div className="max-w-xl mx-auto mb-12">
-          <div className="bg-white/95 backdrop-blur-md rounded-3xl p-8 shadow-2xl border border-gray-200">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-rose-600 via-pink-500 to-purple-600 bg-clip-text text-transparent mb-6 text-center animate-gradient">
-              🏪 Información del Proveedor
-            </h1>
-            <form onSubmit={handleSearch} className="space-y-4">
-              <div>
-                <label className="block text-gray-700 font-semibold mb-2">
-                  Prefijo del código (4 letras)
-                </label>
-                <input
-                  type="text"
-                  value={prefix}
-                  onChange={(e) => setPrefix(e.target.value.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 4))}
-                  maxLength={4}
-                  className="w-full p-4 border-2 border-gray-300 rounded-xl text-center uppercase font-bold text-2xl shadow-md focus:border-rose-500 focus:ring-4 focus:ring-rose-200 transition-all duration-300"
-                  placeholder="NTSF"
-                />
-              </div>
-              {error && <p className="text-red-500 text-sm text-center animate-shake">⚠️ {error}</p>}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-gradient-to-r from-rose-500 via-pink-500 to-purple-500 hover:from-rose-600 hover:via-pink-600 hover:to-purple-600 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50"
-              >
-                {loading ? "🔄 Buscando..." : "🔍 Buscar Proveedor"}
-              </button>
-            </form>
+        {/* Buscador de proveedor solo si no hay proveedor logueado */}
+        {!proveedorContext && (
+          <div className="max-w-xl mx-auto mb-12">
+            <div className="bg-white/95 backdrop-blur-md rounded-3xl p-8 shadow-2xl border border-gray-200">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-rose-600 via-pink-500 to-purple-600 bg-clip-text text-transparent mb-6 text-center animate-gradient">
+                🏪 Información del Proveedor
+              </h1>
+              <form onSubmit={handleSearch} className="space-y-4">
+                <div>
+                  <label className="block text-gray-700 font-semibold mb-2">
+                    Prefijo del código (4 letras)
+                  </label>
+                  <input
+                    type="text"
+                    value={prefix}
+                    onChange={(e) => setPrefix(e.target.value.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 4))}
+                    maxLength={4}
+                    className="w-full p-4 border-2 border-gray-300 rounded-xl text-center uppercase font-bold text-2xl shadow-md focus:border-rose-500 focus:ring-4 focus:ring-rose-200 transition-all duration-300"
+                    placeholder="NTSF"
+                  />
+                </div>
+                {error && <p className="text-red-500 text-sm text-center animate-shake">⚠️ {error}</p>}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-gradient-to-r from-rose-500 via-pink-500 to-purple-500 hover:from-rose-600 hover:via-pink-600 hover:to-purple-600 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50"
+                >
+                  {loading ? "🔄 Buscando..." : "🔍 Buscar Proveedor"}
+                </button>
+              </form>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Información del proveedor */}
         {proveedor && (

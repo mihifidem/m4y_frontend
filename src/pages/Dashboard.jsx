@@ -21,6 +21,13 @@ export default function Dashboard() {
         const res = await api.get("/codes/by-user/");
         setCodes(res.data.codes || []);
         setStats(res.data.stats || { activated: {}, inactive: {} });
+        // Log para depuración de replies y fechas
+        const codes = res.data.codes || [];
+        const debug = codes.filter(c => c.activated).map(c => ({
+          code: c.code,
+          replies: c.message?.replies
+        }));
+        console.log('[DEBUG] Códigos activados y replies:', debug);
       } catch (err) {
         setError("No se pudieron cargar los códigos");
       } finally {
@@ -33,6 +40,29 @@ export default function Dashboard() {
   // Separar códigos activados y sin activar
   const codesActivated = codes.filter((c) => c.activated);
   const codesInactive = codes.filter((c) => !c.activated);
+
+
+  // Desactivar código
+  const handleDeactivateCode = async (code) => {
+    if (!window.confirm(`¿Seguro que quieres desactivar el código ${code}?`)) return;
+    try {
+      await api.post(`/codes/${code}/deactivate/`);
+      setCodes((prev) => prev.map((c) => c.code === code ? { ...c, is_active: false } : c));
+    } catch (err) {
+      alert('No se pudo desactivar el código.');
+    }
+  };
+
+  // Activar código
+  const handleActivateCode = async (code) => {
+    if (!window.confirm(`¿Seguro que quieres activar el código ${code}?`)) return;
+    try {
+      await api.post(`/codes/${code}/activate/`);
+      setCodes((prev) => prev.map((c) => c.code === code ? { ...c, is_active: true } : c));
+    } catch (err) {
+      alert('No se pudo activar el código.');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 py-8 px-4">
@@ -158,6 +188,7 @@ export default function Dashboard() {
                           <tr className="bg-purple-50">
                             <th className="px-2 py-1 text-left">Código</th>
                             <th className="px-2 py-1 text-left">Fecha creación</th>
+                              <th className="px-2 py-1 text-left"></th>
                           </tr>
                         </thead>
                         <tbody>
@@ -165,6 +196,23 @@ export default function Dashboard() {
                             <tr key={c.code} className="border-b last:border-0">
                               <td className="px-2 py-1 font-mono">{c.code}</td>
                               <td className="px-2 py-1">{new Date(c.created_at).toLocaleDateString()}</td>
+                                <td className="px-2 py-1">
+                                  {c.is_active ? (
+                                    <button
+                                      className="px-3 py-1 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded transition text-xs font-semibold"
+                                      onClick={() => handleDeactivateCode(c.code)}
+                                    >
+                                      Desactivar
+                                    </button>
+                                  ) : (
+                                    <button
+                                      className="px-3 py-1 bg-green-100 hover:bg-green-200 text-green-700 rounded transition text-xs font-semibold"
+                                      onClick={() => handleActivateCode(c.code)}
+                                    >
+                                      Activar
+                                    </button>
+                                  )}
+                                </td>
                             </tr>
                           ))}
                         </tbody>
@@ -178,16 +226,28 @@ export default function Dashboard() {
                         <thead>
                           <tr className="bg-green-50">
                             <th className="px-2 py-1 text-left">Código</th>
-                            <th className="px-2 py-1 text-left">Título</th>
                             <th className="px-2 py-1 text-left">Fecha activación</th>
+                            <th className="px-2 py-1 text-left">Fecha reply</th>
                           </tr>
                         </thead>
                         <tbody>
                           {codesActivated.map((c) => (
                             <tr key={c.code} className="border-b last:border-0">
                               <td className="px-2 py-1 font-mono">{c.code}</td>
-                              <td className="px-2 py-1">{c.title || "(Sin título)"}</td>
                               <td className="px-2 py-1">{c.message_created_at ? new Date(c.message_created_at).toLocaleDateString() : "-"}</td>
+                              <td className="px-2 py-1">{c.message?.replies?.[0]?.created_at ? new Date(c.message.replies[0].created_at).toLocaleDateString() : "-"}</td>
+                              <td className="px-2 py-1">
+                                {c.is_active ? (
+                                  <button
+                                    className="px-3 py-1 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded transition text-xs font-semibold"
+                                    onClick={() => handleDeactivateCode(c.code)}
+                                  >
+                                    Desactivar
+                                  </button>
+                                ) : (
+                                  <span className="inline-block w-3 h-3 rounded-full bg-orange-400" title="Inactivo"></span>
+                                )}
+                              </td>
                             </tr>
                           ))}
                         </tbody>

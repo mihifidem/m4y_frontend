@@ -34,20 +34,25 @@ export function AuthProvider({ children }) {
     localStorage.setItem("user", JSON.stringify(userData));
     setUser(userData);
 
+    // LOG extra para depuración
+    console.log("[DEBUG] Usuario logueado:", userData);
+    console.log("[DEBUG] Token access:", res.data.access);
+
     // Cargar información del proveedor automáticamente (ahora con token disponible)
     try {
       const proveedorRes = await api.get("/user/proveedor/");
-      console.log("Respuesta proveedor:", proveedorRes.data);
+      console.log("[DEBUG] Respuesta /user/proveedor/:", proveedorRes.data);
       if (proveedorRes.data.has_proveedor) {
         localStorage.setItem("proveedor", JSON.stringify(proveedorRes.data.proveedor));
         setProveedor(proveedorRes.data.proveedor);
+        console.log("[DEBUG] Proveedor guardado en contexto:", proveedorRes.data.proveedor);
       } else {
-        console.log("Usuario sin proveedor asignado");
+        console.log("[DEBUG] Usuario sin proveedor asignado");
         setProveedor(null);
         localStorage.removeItem("proveedor");
       }
     } catch (err) {
-      console.error("Error cargando proveedor:", err);
+      console.error("[DEBUG] Error cargando proveedor:", err);
       setProveedor(null);
       localStorage.removeItem("proveedor");
     }

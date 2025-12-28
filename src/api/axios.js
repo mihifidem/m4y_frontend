@@ -6,8 +6,12 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  // No enviar token en rutas públicas como /proveedor/
-  if (!config.url.includes('/proveedor/')) {
+  // No enviar token solo en /proveedor/:prefix/ (GET público)
+  const isPublicProveedor =
+    config.method === 'get' &&
+    /^\/proveedor\/[A-Z]{4}\/?$/.test(config.url);
+
+  if (!isPublicProveedor) {
     const token = localStorage.getItem("access");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
